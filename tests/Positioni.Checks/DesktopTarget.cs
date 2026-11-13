@@ -38,9 +38,9 @@ internal static class DesktopTarget
             if(m==0x81) return 1;
             return DefWindowProc(h,m,w,l);
         };
-        var c=new Class { Size=(uint)Marshal.SizeOf<Class>(),Proc=callback,Instance=GetModuleHandle(null),Name="WindowPositionerTestTarget",Brush=(nint)6 };
+        var c=new Class { Size=(uint)Marshal.SizeOf<Class>(),Proc=callback,Instance=GetModuleHandle(null),Name="PositioniTestTarget",Brush=(nint)6 };
         var atom=RegisterClassEx(ref c); Console.WriteLine($"Register: {atom}, error {Marshal.GetLastWin32Error()}");
-        var handle=CreateWindowEx(0,c.Name,"Ventana de prueba · Window Positioner",0x10CF0000,200,200,900,700,0,0,c.Instance,0);
+        var handle=CreateWindowEx(0,c.Name,"Ventana de prueba · Positioni",0x10CF0000,200,200,900,700,0,0,c.Instance,0);
         Console.WriteLine($"Window: {handle}, error {Marshal.GetLastWin32Error()}");
         if(handle==0) return;
         ShowWindow(handle,5); ShowWindow(handle,9);
