@@ -10,7 +10,7 @@
 
 Positioni is a Windows desktop app that lets you save window sizes and positions as profiles and apply them to the active window with custom keyboard shortcuts.
 
-> Screenshot coming with the 1.0 release.
+<p align="center"><img src="docs/images/positioni-screenshot.png" alt="Positioni showing the starter profiles and the visual size and position editor" width="640"></p>
 
 <br>
 
