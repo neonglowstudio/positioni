@@ -1,29 +1,23 @@
 <p align="center">
-  <img src="src/Positioni/Assets/Positioni.png" alt="Positioni logo" width="88">
+  <img src="docs/images/positioni-logo.png" alt="Positioni" width="420">
 </p>
 
-<h1 align="center">Positioni</h1>
-
-<p align="center">Move and resize windows with custom keyboard shortcuts.</p>
+<p align="center">Positioni lets you move and resize windows with custom keyboard shortcuts.</p>
 
 > **Documentation preview for Positioni 1.0.** The current public download is 0.1.0.
 
-<p align="center">
-  <a href="https://github.com/neonglowstudio/positioni/releases">All releases</a>
-</p>
+Positioni is a Windows desktop app that lets you save window sizes and positions as profiles and apply them to the active window with custom keyboard shortcuts.
 
 > Screenshot coming with the 1.0 release.
 
-Positioni is a free Windows 11 app by [Neon Glow](https://neonglow.studio/). Save window sizes and positions as profiles, then apply them to the active window with global shortcuts.
-
 ## Download
 
-| Edition | How to start |
-| --- | --- |
-| Installer | Run the setup executable. |
-| Portable | Extract the whole ZIP and open `Positioni.exe`. Keep the `Files` folder beside it. |
+| Edition | How to start | Download link |
+| --- | --- | --- |
+| Installer | Run the setup executable. | Coming in 1.0 |
+| Portable | Extract the whole ZIP and open the executable inside. | [Download portable 0.1.0](https://github.com/neonglowstudio/positioni/releases/download/v0.1.0/WindowPositioner-v0.1.0-win-x64.zip) |
 
-Both editions are built for Windows 11 x64 and include the required runtimes. Find version details and older downloads under [Releases](https://github.com/neonglowstudio/positioni/releases).
+Positioni 1.0 targets Windows 11 x64. The current [0.1.0 release](https://github.com/neonglowstudio/positioni/releases/tag/v0.1.0) was published as Window Positioner.
 
 ## Features
 
@@ -39,7 +33,7 @@ Both editions are built for Windows 11 x64 and include the required runtimes. Fi
 
 ## Languages
 
-English, Español, Português, Italiano, Français, and Deutsch. Positioni starts in the Windows display language when supported and falls back to English.
+English, Español, Português, Italiano, Français, and Deutsch.
 
 ## Quick start
 
@@ -73,9 +67,10 @@ To build the installer as well, run `.\scripts\package.ps1` with Inno Setup 6 av
 
 ## License and credits
 
-The planned license for Positioni 1.0 is the [GNU General Public License, version 3 only](https://www.gnu.org/licenses/gpl-3.0.html). A separate branding policy will cover the Positioni and Neon Glow names and logos.
+The planned license for Positioni 1.0 is the [GNU General Public License, version 3 only](https://www.gnu.org/licenses/gpl-3.0.html). A separate branding policy will cover the Positioni name, logo, and app icon.
 
-- Wordmark typeface by Indieground Design. [Speltale](https://indieground.net/product/speltale-font/)
+- Developed by [Neon Glow](https://neonglow.studio/).
+- Typeface for the Positioni wordmark by Indieground Design. [Speltale](https://indieground.net/product/speltale-font/)
 - Interface icons by Microsoft. [Segoe Fluent Icons](https://learn.microsoft.com/windows/apps/design/iconography/segoe-fluent-icons-font)
 - GitHub icon from Primer. [Octicons](https://github.com/primer/octicons)
 - Developed with assistance from OpenAI Codex. [Codex](https://github.com/openai/codex)
