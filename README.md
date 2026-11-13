@@ -6,9 +6,13 @@
 
 <p align="center">Positioni lets you move and resize windows with custom keyboard shortcuts.</p>
 
+<br>
+
 ## Description
 
 Positioni is a Windows app that lets you save window sizes and positions as profiles and apply them to the active window with custom keyboard shortcuts.
+
+<br>
 
 ## Screenshot
 
