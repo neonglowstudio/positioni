@@ -32,7 +32,7 @@ Positioni 1.0 targets Windows 11 x64. The current [0.1.0 release](https://github
 - Use nine relative positions, exact coordinates, or resize a window in place.
 - Assign global shortcuts to profiles, pause them together, or disable them individually.
 - Choose from ten starter profiles or start with an empty list.
-- Export profiles as JSON and select which profiles to import from Positioni, Sizer, WindowSizer, FancyZones, DisplayFusion, or supported AutoHotkey v2 bindings.
+- Export profiles as JSON and select which profiles to import from Positioni, [Sizer](https://www.brianapps.net/sizer4/), [WindowSizer](https://github.com/Mxlted/WindowSizer), [FancyZones](https://learn.microsoft.com/en-us/windows/powertoys/fancyzones), [DisplayFusion](https://www.displayfusion.com/HelpGuide/WindowPositionProfiles/), or supported [AutoHotkey v2](https://github.com/AutoHotkey/AutoHotkey) bindings.
 - Start in the system tray when signing in to Windows. Choose whether closing the window keeps the app running.
 - Follow the system theme or choose light or dark.
 - Check GitHub automatically or on demand for updates. View release notes and download the matching edition. The installed edition can apply updates in the app when Windows validates both signatures and their signing certificates match.
@@ -55,7 +55,7 @@ English, Español, Português, Italiano, Français, and Deutsch.
 
 ## Privacy
 
-Profiles and settings are stored on your device. Positioni has no accounts, ads, or telemetry. Update checks contact GitHub.
+Profiles and settings are stored on your device. Positioni has no accounts, ads, or telemetry. Positioni checks the [releases in this GitHub repository](https://github.com/neonglowstudio/positioni/releases) for updates.
 
 <br>
 
