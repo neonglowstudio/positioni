@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="docs/images/positioni-logo.png" alt="Positioni" width="420">
+  <picture>
+    <img src="docs/images/positioni-logo.png" alt="Positioni" width="420">
+  </picture>
 </p>
 
 <p align="center">Positioni lets you move and resize windows with custom keyboard shortcuts.</p>
@@ -10,6 +12,8 @@ Positioni is a Windows desktop app that lets you save window sizes and positions
 
 > Screenshot coming with the 1.0 release.
 
+<br>
+
 ## Download
 
 | Edition | How to start | Download link |
@@ -18,6 +22,8 @@ Positioni is a Windows desktop app that lets you save window sizes and positions
 | Portable | Extract the whole ZIP and open the executable inside. | [Download portable 0.1.0](https://github.com/neonglowstudio/positioni/releases/download/v0.1.0/WindowPositioner-v0.1.0-win-x64.zip) |
 
 Positioni 1.0 targets Windows 11 x64. The current [0.1.0 release](https://github.com/neonglowstudio/positioni/releases/tag/v0.1.0) was published as Window Positioner.
+
+<br>
 
 ## Features
 
@@ -31,9 +37,13 @@ Positioni 1.0 targets Windows 11 x64. The current [0.1.0 release](https://github
 - Follow the system theme or choose light or dark.
 - Check GitHub automatically or on demand for updates. View release notes and download the matching edition. The installed edition can apply updates in the app when Windows validates both signatures and their signing certificates match.
 
+<br>
+
 ## Languages
 
 English, Español, Português, Italiano, Français, and Deutsch.
+
+<br>
 
 ## Quick start
 
@@ -41,9 +51,13 @@ English, Español, Português, Italiano, Français, and Deutsch.
 2. Set the window size and position, assign a shortcut, and save.
 3. Focus the window you want to move or resize and press the shortcut.
 
+<br>
+
 ## Privacy
 
 Profiles and settings are stored on your device. Positioni has no accounts, ads, or telemetry. Update checks contact GitHub.
+
+<br>
 
 ## Technology stack
 
@@ -55,6 +69,8 @@ Profiles and settings are stored on your device. Positioni has no accounts, ads,
 | Windows SDK Build Tools | 10.0.28000.2957 | [Microsoft's NuGet package](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools/10.0.28000.2957) |
 | Inno Setup | 6.7.4 | [Inno Setup repository](https://github.com/jrsoftware/issrc) |
 
+<br>
+
 ## Build from source
 
 The build and packaging scripts use PowerShell. On Windows x64 with the .NET 11 SDK installed, run:
@@ -65,12 +81,14 @@ The build and packaging scripts use PowerShell. On Windows x64 with the .NET 11 
 
 To build the installer as well, run `.\scripts\package.ps1` with Inno Setup 6 available. Pass `-Iscc` if the compiler is outside your PATH.
 
+<br>
+
 ## License and credits
 
 The planned license for Positioni 1.0 is the [GNU General Public License, version 3 only](https://www.gnu.org/licenses/gpl-3.0.html). A separate branding policy will cover the Positioni name, logo, and app icon.
 
-- Developed by [Neon Glow](https://neonglow.studio/).
-- Typeface for the Positioni wordmark by Indieground Design. [Speltale](https://indieground.net/product/speltale-font/)
-- Interface icons by Microsoft. [Segoe Fluent Icons](https://learn.microsoft.com/windows/apps/design/iconography/segoe-fluent-icons-font)
-- GitHub icon from Primer. [Octicons](https://github.com/primer/octicons)
-- Developed with assistance from OpenAI Codex. [Codex](https://github.com/openai/codex)
+- Designed and developed by [Neon Glow](https://neonglow.studio/).
+- Positioni wordmark typeface: [Speltale](https://indieground.net/product/speltale-font/) by [Indieground Design](https://indieground.net/).
+- Interface icons: [Segoe Fluent Icons](https://learn.microsoft.com/windows/apps/design/iconography/segoe-fluent-icons-font) by [Microsoft](https://www.microsoft.com/).
+- GitHub icon: [Octicons](https://github.com/primer/octicons) by [Primer](https://primer.style/).
+- Development assistance: [Codex](https://github.com/openai/codex) by [OpenAI](https://openai.com/).
