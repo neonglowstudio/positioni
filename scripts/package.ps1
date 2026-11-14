@@ -10,16 +10,20 @@ $project = Join-Path $projectRoot 'src\Positioni\Positioni.csproj'
 $version = ([xml](Get-Content -LiteralPath $project -Raw)).Project.PropertyGroup.Version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected a three-part application version.' }
 
-$output = Join-Path $projectRoot 'outputs'
+$workingBuild = Split-Path $projectRoot -Parent
+$localLayout = (Split-Path $projectRoot -Leaf) -eq 'Build' -and (Split-Path $workingBuild -Leaf) -eq 'Working build'
+$output = if ($localLayout) { Join-Path $workingBuild 'Output' }
+    else { Join-Path $projectRoot 'outputs' }
 $portable = Join-Path $output 'Portable'
 $installerOutput = Join-Path $output 'Installer'
 $stage = Join-Path $projectRoot ("work\package-" + [Guid]::NewGuid().ToString('N'))
 $publish = Join-Path $stage 'Portable'
 $previousPortable = Join-Path $stage 'Previous Portable'
 $installer = Join-Path $projectRoot 'installer\Positioni.iss'
-$setupName = "positioni-$version-win-x64-setup.exe"
+$setupName = "positioni-$version-win-x64-installer.exe"
 $setup = Join-Path $stage $setupName
-$releaseRoot = Join-Path (Split-Path $projectRoot -Parent) 'Releases'
+$releaseRoot = if ($localLayout) { Join-Path (Split-Path $workingBuild -Parent) 'Releases' }
+    else { Join-Path $workingBuild 'Releases' }
 $releaseDirectory = Join-Path $releaseRoot $version
 
 if ($Release -and (Test-Path -LiteralPath $releaseDirectory)) {
@@ -83,6 +87,10 @@ try {
         $preserveStage = $false
         throw
     }
+    Get-ChildItem -LiteralPath $installerOutput -File | Where-Object {
+        $_.Name -match '^positioni-\d+\.\d+\.\d+-win-x64-(?:installer|setup)\.exe$' -and $_.Name -ne $setupName
+    } | ForEach-Object { Remove-Item -LiteralPath $_.FullName }
+
     Write-Output (Join-Path $portable 'Positioni.exe')
     Write-Output $setupOutput
 

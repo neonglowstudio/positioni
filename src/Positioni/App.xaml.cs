@@ -49,7 +49,7 @@ public partial class App : Application
                 openWait.Unregister(null);
                 openRequest.Dispose();
             };
-            if (!startInTray) window.Activate();
+            if (!startInTray) window.ShowEditor();
         }
         catch (Exception ex)
         {

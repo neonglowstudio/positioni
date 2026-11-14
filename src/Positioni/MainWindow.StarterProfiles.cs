@@ -22,7 +22,7 @@ public sealed partial class MainWindow
         ("StarterPipSmall", 40, 40, 9, 'R')
     ];
 
-    private enum StarterPickerEntry { Welcome, Options, EmptyState }
+    private enum StarterPickerEntry { Welcome, WelcomePreview, Options, EmptyState }
 
     private void ChooseStarterProfiles_Click(object sender, RoutedEventArgs e) =>
         OpenStarterProfiles(StarterPickerEntry.Options);
@@ -48,11 +48,12 @@ public sealed partial class MainWindow
 
     private void OpenStarterProfiles(StarterPickerEntry entry)
     {
-        bool welcome = entry == StarterPickerEntry.Welcome;
+        bool welcome = entry is StarterPickerEntry.Welcome or StarterPickerEntry.WelcomePreview;
         var target = welcome ? WelcomePicker : OptionsStarterPicker;
         target.Content = CreateStarterPicker(entry);
         if (welcome)
         {
+            WelcomeHint.Visibility = Visibility.Visible;
             MainSurface.Visibility = Visibility.Collapsed;
             WelcomeSurface.Visibility = Visibility.Visible;
             return;
@@ -72,7 +73,8 @@ public sealed partial class MainWindow
 
     private Grid CreateStarterPicker(StarterPickerEntry entry)
     {
-        bool welcome = entry == StarterPickerEntry.Welcome;
+        bool welcome = entry is StarterPickerEntry.Welcome or StarterPickerEntry.WelcomePreview;
+        bool previewOnly = entry == StarterPickerEntry.WelcomePreview;
         var rows = new StackPanel { Spacing = 5, Padding = new Thickness(0, 0, 18, 0) };
         var choices = new List<(Preset Profile, CheckBox Check)>();
         foreach (var starter in StarterProfiles)
@@ -93,7 +95,7 @@ public sealed partial class MainWindow
                 Modifiers = 6,
                 Key = starter.Key
             };
-            bool alreadyAdded = presets.Any(p => MatchesStarter(p, profile));
+            bool alreadyAdded = !previewOnly && presets.Any(p => MatchesStarter(p, profile));
             var title = new TextBlock
             {
                 Text = profile.DisplayName,
@@ -163,13 +165,7 @@ public sealed partial class MainWindow
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto
         };
-        var viewport = new Grid();
-        var top = new Border { Style = (Style)Root.Resources["ScrollTopShadowStyle"] };
-        var bottom = new Border { Style = (Style)Root.Resources["ScrollBottomShadowStyle"] };
-        viewport.Children.Add(scroll);
-        viewport.Children.Add(top);
-        viewport.Children.Add(bottom);
-        TrackScrollShadows(scroll, top, bottom);
+        var viewport = CreateRoundedScrollViewport(scroll);
         var limit = ImportDetail(Get("ImportLimit"));
         var heading = new StackPanel { Margin = new Thickness(0, 0, 0, rows.Spacing) };
         if (welcome)
@@ -201,7 +197,7 @@ public sealed partial class MainWindow
         void Refresh()
         {
             int count = available.Count(choice => choice.Check.IsChecked == true);
-            bool overLimit = presets.Count + count > ProfileLimit;
+            bool overLimit = !previewOnly && presets.Count + count > ProfileLimit;
             selectAll.IsEnabled = available.Length > 0;
             selectAll.IsChecked = count == 0 ? false : count == available.Length ? true : null;
             limit.Visibility = overLimit ? Visibility.Visible : Visibility.Collapsed;
@@ -223,12 +219,17 @@ public sealed partial class MainWindow
         };
         skip.Click += async (_, _) =>
         {
-            if (welcome) await CommitStarterProfilesAsync([], true);
+            if (previewOnly) FinishWelcome();
+            else if (welcome) await CommitStarterProfilesAsync([], true);
             else if (entry == StarterPickerEntry.Options) ShowOptionsOverview();
             else CloseOptions();
         };
-        add.Click += async (_, _) => await CommitStarterProfilesAsync(
-            available.Where(choice => choice.Check.IsChecked == true).Select(choice => choice.Profile).ToList(), welcome);
+        add.Click += async (_, _) =>
+        {
+            if (previewOnly) FinishWelcome();
+            else await CommitStarterProfilesAsync(
+                available.Where(choice => choice.Check.IsChecked == true).Select(choice => choice.Profile).ToList(), welcome);
+        };
         Refresh();
         return layout;
     }

@@ -21,12 +21,15 @@ public sealed record PositioniRelease(Version Version, Uri Notes, ReleaseAsset? 
             throw new InvalidDataException("The GitHub release tag is not a three-part version.");
         if (version <= current) return null;
 
-        string fileName = portable ? $"positioni-{text}-win-x64-portable.zip" : $"positioni-{text}-win-x64-setup.exe";
+        string fileName = portable ? $"positioni-{text}-win-x64-portable.zip" : $"positioni-{text}-win-x64-installer.exe";
+        string? legacyFileName = portable ? null : $"positioni-{text}-win-x64-setup.exe";
         ReleaseAsset? asset = null;
         foreach (var item in root.GetProperty("assets").EnumerateArray())
         {
             string? assetName = item.GetProperty("name").GetString();
-            if (assetName is null || !assetName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+            if (assetName is null) continue;
+            bool preferred = assetName.Equals(fileName, StringComparison.OrdinalIgnoreCase);
+            if (!preferred && !assetName.Equals(legacyFileName, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             string download = $"{Releases}/download/{tag}/{assetName}";
@@ -38,7 +41,7 @@ public sealed record PositioniRelease(Version Version, Uri Notes, ReleaseAsset? 
             string? hash = digest is { Length: 71 } && digest.StartsWith("sha256:", StringComparison.Ordinal)
                 && digest.AsSpan(7).ToString().All(Uri.IsHexDigit) ? digest[7..] : null;
             asset = new(new Uri(download), size, hash);
-            break;
+            if (preferred) break;
         }
         return new(version, new Uri($"{Releases}/tag/{tag}"), asset);
     }

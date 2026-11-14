@@ -2,12 +2,12 @@
     x:Class="Positioni.ProfileThumbnail"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Width="92" IsTabStop="False" IsHitTestVisible="False"
+    x:Name="ThumbnailRoot" Width="84" IsTabStop="False" IsHitTestVisible="False"
     HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top">
     <StackPanel>
      <Canvas x:Name="InactiveBadgeViewport" Height="0" Visibility="Collapsed">
         <Canvas.Clip><RectangleGeometry x:Name="InactiveBadgeClip"/></Canvas.Clip>
-        <Border x:Name="InactiveBadge" CornerRadius="4" MaxWidth="92" Padding="5,2" Margin="0,0,0,4"
+        <Border x:Name="InactiveBadge" CornerRadius="4" MaxWidth="{Binding Width, ElementName=ThumbnailRoot}" Padding="5,2" Margin="0,0,0,4"
                 Background="{ThemeResource SubtleFillColorSecondaryBrush}">
             <TextBlock x:Name="InactiveBadgeText" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>

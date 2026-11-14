@@ -115,7 +115,7 @@ public sealed partial class MainWindow
         return ShowDialogAsync(dialog);
     }
 
-    private Grid CreateShortcutWarnings(
+    private Border CreateShortcutWarnings(
         List<(Preset Profile, ShortcutIssue Issue)> affected, List<string> registrationErrors, bool starterProfiles)
     {
         string title = starterProfiles
@@ -155,14 +155,7 @@ public sealed partial class MainWindow
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto
         };
-        var list = new Grid();
-        var top = new Border { Style = (Style)Root.Resources["ScrollTopShadowStyle"] };
-        var bottom = new Border { Style = (Style)Root.Resources["ScrollBottomShadowStyle"] };
-        TrackScrollShadows(scroll, top, bottom);
-        list.Children.Add(scroll);
-        list.Children.Add(top);
-        list.Children.Add(bottom);
-        return list;
+        return CreateRoundedScrollViewport(scroll);
     }
 
     private async Task<List<Preset>> ReviewImportAsync(List<Preset> incoming, List<string> warnings)
@@ -265,14 +258,7 @@ public sealed partial class MainWindow
         content.Children.Add(ImportDetail(Get("ImportKeepExisting")));
         content.Children.Add(selectAll);
         content.Children.Add(limit);
-        var topShadow = new Border { Style = (Style)Root.Resources["ScrollTopShadowStyle"] };
-        var bottomShadow = new Border { Style = (Style)Root.Resources["ScrollBottomShadowStyle"] };
-        TrackScrollShadows(scroll, topShadow, bottomShadow);
-        var list = new Grid();
-        list.Children.Add(scroll);
-        list.Children.Add(topShadow);
-        list.Children.Add(bottomShadow);
-        content.Children.Add(list);
+        content.Children.Add(CreateRoundedScrollViewport(scroll));
         content.Children.Add(actions);
         dialog.Content = content;
 

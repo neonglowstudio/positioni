@@ -12,7 +12,7 @@ public sealed partial class MainWindow
     {
         var thumbnail = (ProfileThumbnail)sender;
         profileThumbnails.Add(thumbnail);
-        UpdateProfileThumbnail(thumbnail);
+        UpdateProfileThumbnail(thumbnail, force: true);
     }
 
     private void ProfileThumbnail_Unloaded(object sender, RoutedEventArgs e) =>
@@ -24,7 +24,7 @@ public sealed partial class MainWindow
         if (profileThumbnails.Contains(thumbnail)) UpdateProfileThumbnail(thumbnail);
     }
 
-    private void UpdateProfileThumbnail(ProfileThumbnail thumbnail)
+    private void UpdateProfileThumbnail(ProfileThumbnail thumbnail, bool force = false)
     {
         if (thumbnail.DataContext is not Preset profile) return;
         bool animate = !profile.Enabled && animateInactiveProfile == profile.Id;
@@ -32,7 +32,7 @@ public sealed partial class MainWindow
         thumbnail.UpdateInactiveBadge(profile, animate && motionSettings.AnimationsEnabled);
         try
         {
-            thumbnail.ShowProfile(profile, Native.MonitorAreas(hwnd, profile.PrimaryMonitor).Screen);
+            thumbnail.ShowProfile(profile, Native.MonitorAreas(hwnd, profile.PrimaryMonitor).Screen, force);
         }
         catch (InvalidOperationException)
         {

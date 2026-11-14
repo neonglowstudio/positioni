@@ -54,6 +54,15 @@ var installedOffer = PositioniRelease.Parse(releasesJson, new Version(0, 9, 9), 
 var portableOffer = PositioniRelease.Parse(releasesJson, new Version(0, 9, 9), portable: true);
 Check(installedOffer?.Asset is { Size: 600, Sha256.Length: 64 } && installedOffer.Notes.AbsolutePath.EndsWith("/tag/v0.10.0") &&
     portableOffer?.Asset is { Size: 400 }, "Update check compares numeric versions and selects the right release asset");
+const string installerFile = "positioni-0.10.0-win-x64-installer.exe";
+var installerJson = releasesJson.Replace("positioni-0.10.0-win-x64-setup.exe", installerFile);
+Check(PositioniRelease.Parse(installerJson, new Version(0, 9, 9), portable: false)?.Asset?.Download.Segments[^1] == installerFile,
+    "Update check recognizes installer assets with the new naming");
+var bothInstallerNames = releasesJson.Replace(
+    """{"name":"positioni-0.10.0-win-x64-portable.zip","browser_download_url":"https://github.com/neonglowstudio/positioni/releases/download/v0.10.0/positioni-0.10.0-win-x64-portable.zip","size":400}""",
+    $$"""{"name":"{{installerFile}}","browser_download_url":"https://github.com/neonglowstudio/positioni/releases/download/v0.10.0/{{installerFile}}","size":600}""");
+Check(PositioniRelease.Parse(bothInstallerNames, new Version(0, 9, 9), portable: false)?.Asset?.Download.Segments[^1] == installerFile,
+    "Update check prefers the new installer name when both names are available");
 var legacyAssetNames = releasesJson.Replace("positioni-0.10.0-win-x64-", "Positioni-0.10.0-win-x64-");
 Check(PositioniRelease.Parse(legacyAssetNames, new Version(0, 9, 9), portable: true)?.Asset?.Download.AbsolutePath
     .EndsWith("/Positioni-0.10.0-win-x64-portable.zip", StringComparison.Ordinal) == true,

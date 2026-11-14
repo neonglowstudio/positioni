@@ -119,10 +119,15 @@ internal sealed class DesktopHost : IDisposable
     public Action<Preset>? Pressed;
     public Action? Open, Toggle, Quit, ResetSize, RequestExit, RequestQuit;
     public Action? MonitorLayoutChanged;
+    public Action? Resized;
     public bool CloseToTray { get; set; } = true;
     private const uint BorderClick = 0x00A1;
     private const uint BorderDoubleClick = 0x00A3;
     private const uint WindowSizing = 0x0214;
+    private const uint EnterSizeMove = 0x0231;
+    private const uint ExitSizeMove = 0x0232;
+    private Rect? sizeBeforeDrag;
+    private bool sizingWindow;
     private const nuint BottomRightCorner = 17;
     private bool trackingCornerClick, cornerDragged;
     private (int X, int Y, uint Time)? previousCornerClick;
@@ -242,7 +247,27 @@ internal sealed class DesktopHost : IDisposable
         if (msg == displayChanged || (msg == settingChanged && wp == setWorkArea))
             MonitorLayoutChanged?.Invoke();
 
-        if (msg == WindowSizing && trackingCornerClick) cornerDragged = true;
+        if (msg == EnterSizeMove)
+        {
+            sizingWindow = false;
+            sizeBeforeDrag = Native.GetWindowRect(h, out var bounds) ? bounds.ToRect() : null;
+        }
+        if (msg == WindowSizing)
+        {
+            sizingWindow = true;
+            if (trackingCornerClick) cornerDragged = true;
+        }
+        if (msg == ExitSizeMove)
+        {
+            if (sizingWindow && !Native.IsZoomed(h) && Native.GetWindowRect(h, out var bounds))
+            {
+                var size = bounds.ToRect();
+                if (sizeBeforeDrag is not { } start || size.Width != start.Width || size.Height != start.Height)
+                    Resized?.Invoke();
+            }
+            sizingWindow = false;
+            sizeBeforeDrag = null;
+        }
         if (msg == BorderDoubleClick && wp == BottomRightCorner && !Native.IsZoomed(h))
         {
             previousCornerClick = null;

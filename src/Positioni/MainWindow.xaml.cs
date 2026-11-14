@@ -28,8 +28,7 @@ public sealed partial class MainWindow : Window
     private ContentDialog? activeDialog;
     private Task<ContentDialogResult>? activeDialogResult;
     private Task<bool>? unsavedProfileDecision;
-    private const int InitialWidth = 1100;
-    private const int InitialHeight = 900;
+
     private bool OptionsOpen => OptionsOverlay.Visibility == Visibility.Visible;
 
     private bool applyingLanguage;
@@ -51,11 +50,12 @@ public sealed partial class MainWindow : Window
         hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         InitializeAlignmentEditor();
         AppWindow.SetIcon(Native.AppIconPath);
-        ResetWindowSize();
+        RestoreWindowSize();
         statusTimer.Tick += (_, _) => DismissToast();
         LanguageInput.ItemsSource = LanguageNames;
         ImportSource.ItemsSource = ImportSources;
         ImportSource.SelectedIndex = 0;
+        PresetList.ItemsSource = presets;
         ApplyLanguage();
         dataPath = Path.Combine(LanguagePreference.DataDirectory, "presets.json");
         string? loadError = null;
@@ -74,12 +74,14 @@ public sealed partial class MainWindow : Window
         Root.AddHandler(UIElement.PreviewKeyDownEvent, new KeyEventHandler(RecordShortcutKey), true);
         host.Toggle = TogglePause;
         host.ResetSize = () => DispatcherQueue.TryEnqueue(ResetWindowSize);
+        host.Resized = RememberWindowSize;
         host.MonitorLayoutChanged = () => DispatcherQueue.TryEnqueue(UpdateMonitorPreviews);
         host.Quit = () => { host.Quitting = true; Close(); };
         Closed += (_, _) => { ClearStatus(); host.Dispose(); };
         LoadStartupSetting();
         InitializeCloseBehavior();
         InitializeTheme();
+        InitializeUiScale();
         InitializeSpellCheck();
         InitializeUpdates();
         InitializeLogoMotion();
@@ -93,11 +95,6 @@ public sealed partial class MainWindow : Window
         if (loadError is null && !File.Exists(dataPath)) OpenStarterProfiles(StarterPickerEntry.Welcome);
     }
 
-    private void ResetWindowSize()
-    {
-        double scale = Native.GetDpiForWindow(hwnd) / 96.0;
-        AppWindow.Resize(new Windows.Graphics.SizeInt32((int)(InitialWidth * scale), (int)(InitialHeight * scale)));
-    }
 
     private void Options_Click(object sender, RoutedEventArgs e)
     {
@@ -109,6 +106,7 @@ public sealed partial class MainWindow : Window
     private void ShowOptionsOverlay()
     {
         OptionsOverlay.Visibility = Visibility.Visible;
+        SyncUiSizeSelection();
         MainSurface.IsEnabled = false;
         CloseOptionsButton.Focus(FocusState.Programmatic);
         UpdateStudioGlow();
@@ -136,6 +134,8 @@ public sealed partial class MainWindow : Window
         if (OptionsStarterPicker.Visibility == Visibility.Visible) ShowOptionsOverview();
         if (toastInOptions) DismissToast();
         OptionsOverlay.Visibility = Visibility.Collapsed;
+        studioLogoClicks = 0;
+        DeveloperModePanel.Visibility = Visibility.Collapsed;
         UpdateStudioGlow();
         MainSurface.IsEnabled = true;
         (fromEmptyState && presets.Count == 0 ? EmptyChooseStarterProfilesButton : OptionsButton)
@@ -217,6 +217,10 @@ public sealed partial class MainWindow : Window
         SystemThemeRadio.Content = Get("ThemeSystem");
         LightThemeRadio.Content = Get("ThemeLight");
         DarkThemeRadio.Content = Get("ThemeDark");
+        UiScaleTitle.Text = Get("UiScale");
+        SmallUiRadio.Content = Get("UiScaleSmall");
+        DefaultUiRadio.Content = Get("UiScaleDefault");
+        LargeUiRadio.Content = Get("UiScaleLarge");
         CloseBehaviorTitle.Text = Get("OnClose");
         CloseBehaviorHint.Text = Get("OnCloseHint");
         CloseToTrayLabel.Text = Get("CloseToTray");
@@ -265,6 +269,9 @@ public sealed partial class MainWindow : Window
         AboutLabel.Text = Get("About");
         VersionLabel.Text = Get("Version", typeof(MainWindow).Assembly.GetName().Version!.ToString(3));
         CreatedByLabel.Text = Get("CreatedBy");
+        EasterEggTitle.Text = Get("EasterEggTitle");
+        EasterEggDescription.Text = Get("EasterEggDescription");
+        RunOnboardingButton.Content = Get("RunOnboarding");
         RepositoryLinkLabel.Text = Get("Repository");
         AutomationProperties.SetName(RepositoryLink, RepositoryLinkLabel.Text);
         DuplicateButton.Content = Get("Duplicate");
@@ -304,9 +311,16 @@ public sealed partial class MainWindow : Window
 
 
         ApplyPositionLabels();
-        PresetList.ItemsSource = null;
-        PresetList.ItemsSource = presets;
-        PresetList.SelectedItem = selected;
+        foreach (var profile in presets)
+            if (string.IsNullOrWhiteSpace(profile.Name))
+                profile.RefreshDisplayName();
+
+        foreach (var presenter in profileListShortcuts)
+            if (presenter.DataContext is Preset profile)
+                presenter.Content = CreateCompactShortcut(profile);
+
+        foreach (var thumbnail in profileThumbnails)
+            UpdateProfileThumbnail(thumbnail);
         RefreshCount();
         applyingLanguage = loading = false;
         UpdateProfileEditorState();
@@ -513,10 +527,29 @@ public sealed partial class MainWindow : Window
             else snapshot[index] = p;
             Persist(snapshot);
             loading = true;
-            animateInactiveProfile = index >= 0 && presets[index].Enabled && !p.Enabled ? p.Id : null;
-            if (index < 0) presets.Add(p);
-            else presets[index] = p;
-            SelectProfile(p);
+            if (index < 0)
+            {
+                animateInactiveProfile = null;
+                presets.Add(p);
+                SelectProfile(p);
+            }
+            else
+            {
+                // Keep the existing list item so saving does not replay its entry transition.
+                animateInactiveProfile = previous.Enabled && !p.Enabled ? p.Id : null;
+                bool shortcutChanged = previous.Key != p.Key || previous.Modifiers != p.Modifiers;
+                previous.ApplyEdits(p);
+                if (shortcutChanged)
+                {
+                    foreach (var presenter in profileListShortcuts)
+                        if (ReferenceEquals(presenter.DataContext, previous))
+                            presenter.Content = CreateCompactShortcut(previous);
+                }
+                foreach (var thumbnail in profileThumbnails)
+                    if (ReferenceEquals(thumbnail.DataContext, previous))
+                        UpdateProfileThumbnail(thumbnail, force: true);
+                LoadProfile(previous);
+            }
             var errors = RefreshHotkeys();
             if (shortcutWarning is not null) errors.Insert(0, shortcutWarning);
             Notify(errors.Count > 0 ? Get("SavedWarnings") + "\n" + string.Join("\n", errors) : Get("Saved"), errors.Count > 0);
@@ -836,11 +869,18 @@ public sealed partial class MainWindow : Window
         try
         {
             DialogBackdrop.Visibility = Visibility.Visible;
-            activeDialogResult = dialog.ShowAsync().AsTask();
+            if (UiViewport.ZoomFactor != 1)
+            {
+                DialogHost.Visibility = Visibility.Visible;
+                DialogHost.Children.Add(dialog);
+            }
+            activeDialogResult = dialog.ShowAsync(ContentDialogPlacement.InPlace).AsTask();
             return await activeDialogResult;
         }
         finally
         {
+            DialogHost.Children.Remove(dialog);
+            DialogHost.Visibility = Visibility.Collapsed;
             DialogBackdrop.Visibility = Visibility.Collapsed;
             activeDialog = null;
             activeDialogResult = null;
@@ -902,6 +942,7 @@ public sealed partial class MainWindow : Window
                 CloseButtonText = Get("Cancel"),
                 DefaultButton = ContentDialogButton.Close
             };
+
             dialog.Resources["ContentDialogMaxWidth"] = 640d;
 
             dialog.SecondaryButtonClick += async (_, args) =>

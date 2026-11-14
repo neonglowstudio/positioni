@@ -64,9 +64,9 @@ public sealed partial class ProfileThumbnail : UserControl
         inactiveBadgeMotion.Begin();
     }
 
-    internal void ShowProfile(Preset profile, Rect screen)
+    internal void ShowProfile(Preset profile, Rect screen, bool force = false)
     {
-        if (ReferenceEquals(profile, lastProfile) && screen == lastScreen) return;
+        if (!force && ReferenceEquals(profile, lastProfile) && screen == lastScreen) return;
         lastProfile = profile;
         lastScreen = screen;
 

@@ -34,12 +34,17 @@ public sealed record ShortcutKeycap(string Label, bool IsWindows, bool IsShift, 
 
 public sealed partial class MainWindow
 {
+    private readonly HashSet<ContentPresenter> profileListShortcuts = [];
+
     private void ProfileListShortcut_Loaded(object sender, RoutedEventArgs args)
     {
         var presenter = (ContentPresenter)sender;
-        if (presenter.Content is null && presenter.DataContext is Positioni.Core.Preset profile)
-            presenter.Content = CreateCompactShortcut(profile);
+        profileListShortcuts.Add(presenter);
+        presenter.Content = presenter.DataContext is Positioni.Core.Preset profile ? CreateCompactShortcut(profile) : null;
     }
+
+    private void ProfileListShortcut_Unloaded(object sender, RoutedEventArgs args) =>
+        profileListShortcuts.Remove((ContentPresenter)sender);
 
     private void ProfileListShortcut_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
@@ -107,6 +112,27 @@ public sealed partial class MainWindow
             input.Checked += (_, _) => UpdateProfileEditorState();
             input.Unchecked += (_, _) => UpdateProfileEditorState();
         }
+    }
+
+    private Border CreateRoundedScrollViewport(ScrollViewer scroll)
+    {
+        const double radius = 8;
+        var top = new Border
+        {
+            Style = (Style)Root.Resources["ScrollTopShadowStyle"],
+            CornerRadius = new CornerRadius(radius, radius, 0, 0)
+        };
+        var bottom = new Border
+        {
+            Style = (Style)Root.Resources["ScrollBottomShadowStyle"],
+            CornerRadius = new CornerRadius(0, 0, radius, radius)
+        };
+        var viewport = new Grid();
+        viewport.Children.Add(scroll);
+        viewport.Children.Add(top);
+        viewport.Children.Add(bottom);
+        TrackScrollShadows(scroll, top, bottom);
+        return new Border { CornerRadius = new CornerRadius(radius), Child = viewport };
     }
 
     private static void TrackScrollShadows(ScrollViewer scroll, Border top, Border bottom)

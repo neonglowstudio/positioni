@@ -9,6 +9,34 @@ namespace Positioni;
 public sealed partial class MainWindow
 {
     private DropShadow? studioGlow;
+    private long firstStudioLogoClick;
+    private int studioLogoClicks;
+
+    private void StudioLogo_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!OptionsOpen || DeveloperModePanel.Visibility == Visibility.Visible ||
+            e.GetCurrentPoint(StudioLogo).Properties.PointerUpdateKind != Microsoft.UI.Input.PointerUpdateKind.LeftButtonReleased)
+            return;
+
+        long now = Environment.TickCount64;
+        if (studioLogoClicks == 0 || now - firstStudioLogoClick > 2000)
+        {
+            firstStudioLogoClick = now;
+            studioLogoClicks = 0;
+        }
+
+        if (++studioLogoClicks == 5)
+        {
+            DeveloperModePanel.Visibility = Visibility.Visible;
+            RunOnboardingButton.Focus(FocusState.Programmatic);
+        }
+    }
+
+    private void RunOnboarding_Click(object sender, RoutedEventArgs e)
+    {
+        if (CloseOptions())
+            OpenStarterProfiles(StarterPickerEntry.WelcomePreview);
+    }
 
     private void StudioLogo_ImageOpened(object sender, RoutedEventArgs e)
     {

@@ -1,4 +1,5 @@
 using static Positioni.Core.UiText;
+using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml;
@@ -6,7 +7,7 @@ using System.Xml.Linq;
 
 namespace Positioni.Core;
 
-public sealed class Preset
+public sealed class Preset : INotifyPropertyChanged
 {
     public const int UnsetPlacement = -1;
     public const int UnsetCoordinate = -100001;
@@ -44,6 +45,34 @@ public sealed class Preset
         percent is int value ? $"{value} %" : $"{pixels} px";
     [JsonIgnore] public string InactiveLabel => Get("Inactive");
     public Preset Copy() => JsonSerializer.Deserialize<Preset>(JsonSerializer.Serialize(this))!;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void ApplyEdits(Preset edited)
+    {
+        string oldDisplayName = DisplayName;
+        Name = edited.Name;
+        Notes = edited.Notes;
+        Width = edited.Width;
+        Height = edited.Height;
+        WidthPercent = edited.WidthPercent;
+        HeightPercent = edited.HeightPercent;
+        X = edited.X;
+        Y = edited.Y;
+        Placement = edited.Placement;
+        PrimaryMonitor = edited.PrimaryMonitor;
+        KeepSize = edited.KeepSize;
+        AllowOutside = edited.AllowOutside;
+        Enabled = edited.Enabled;
+        Modifiers = edited.Modifiers;
+        Key = edited.Key;
+
+        if (DisplayName != oldDisplayName)
+            RefreshDisplayName();
+    }
+
+    public void RefreshDisplayName() =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+
     public string? Validate()
     {
         if (Name is null || Name.Length > 150) return Get("InvalidName");

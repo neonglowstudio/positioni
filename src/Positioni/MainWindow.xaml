@@ -1,4 +1,5 @@
 <Window x:Class="Positioni.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:core="using:Positioni.Core" xmlns:local="using:Positioni" Title="Positioni">
+ <local:UiScalePanel x:Name="UiViewport">
  <Grid x:Name="Root" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Grid.Resources>
    <ResourceDictionary>
@@ -139,7 +140,7 @@
            Opacity="0" IsTabStop="False" IsHitTestVisible="False" UseSystemFocusVisuals="False"
            AutomationProperties.AccessibilityView="Raw"/>
   <ContentControl x:Name="MainSurface" IsTabStop="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-   <Grid Padding="28" RowSpacing="20">
+   <Grid Padding="28,7,28,28" RowSpacing="20">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
     <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
      <StackPanel Spacing="4">
@@ -149,7 +150,7 @@
       </StackPanel>
       <TextBlock x:Name="DescriptionLabel" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
      </StackPanel>
-     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top" Margin="0,6,0,0">
       <Button x:Name="UpdateAvailableButton" Click="UpdateAvailable_Click" Visibility="Collapsed" Style="{ThemeResource AccentButtonStyle}"/>
       <Button x:Name="PauseButton" Click="Pause_Click" Height="32" Padding="11,0" VerticalContentAlignment="Center">
        <Grid ColumnSpacing="8" VerticalAlignment="Center">
@@ -176,7 +177,8 @@
          </TextBlock>
         </Border>
        </StackPanel>
-       <Grid Grid.Row="1">
+       <Border Grid.Row="1" CornerRadius="8">
+       <Grid>
         <ListView x:Name="PresetList" SelectionChanged="Selection_Changed" SelectionMode="Single" HorizontalContentAlignment="Stretch">
          <ListView.Resources>
           <x:Boolean x:Key="ListViewItemSelectionIndicatorVisualEnabled">False</x:Boolean>
@@ -188,7 +190,7 @@
          </ListView.ItemContainerTransitions>
          <ListView.ItemTemplate>
           <DataTemplate x:DataType="core:Preset">
-           <Grid Padding="2,7" MinHeight="62" ColumnSpacing="8">
+           <Grid Padding="2,7" MinHeight="62" ColumnSpacing="6">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Border Width="3" Height="28" CornerRadius="1.5" Margin="-12,0,0,0"
                     HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"
@@ -197,8 +199,8 @@
                     Loaded="ProfileSelectionMarker_Loaded" Unloaded="ProfileSelectionMarker_Unloaded"
                     DataContextChanged="ProfileSelectionMarker_DataContextChanged"/>
             <StackPanel Spacing="3" VerticalAlignment="Top">
-             <TextBlock Text="{x:Bind DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap"/>
-             <ContentPresenter Loaded="ProfileListShortcut_Loaded" DataContextChanged="ProfileListShortcut_DataContextChanged"/>
+             <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" FontWeight="SemiBold" TextWrapping="Wrap" UseLayoutRounding="False"/>
+             <ContentPresenter Loaded="ProfileListShortcut_Loaded" Unloaded="ProfileListShortcut_Unloaded" DataContextChanged="ProfileListShortcut_DataContextChanged"/>
             </StackPanel>
             <local:ProfileThumbnail Grid.Column="1" VerticalAlignment="Top"
                                     Loaded="ProfileThumbnail_Loaded" Unloaded="ProfileThumbnail_Unloaded"
@@ -207,9 +209,10 @@
           </DataTemplate>
          </ListView.ItemTemplate>
         </ListView>
-        <Border x:Name="PresetListTopShadow" Style="{StaticResource ScrollTopShadowStyle}"/>
-        <Border x:Name="PresetListBottomShadow" Style="{StaticResource ScrollBottomShadowStyle}"/>
+        <Border x:Name="PresetListTopShadow" CornerRadius="8,8,0,0" Style="{StaticResource ScrollTopShadowStyle}"/>
+        <Border x:Name="PresetListBottomShadow" CornerRadius="0,0,8,8" Style="{StaticResource ScrollBottomShadowStyle}"/>
        </Grid>
+       </Border>
        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5"><Button x:Name="DuplicateButton" Click="Duplicate_Click"/><Button x:Name="UpButton" Click="Up_Click"><FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74A;" FontSize="12" Width="16" Height="16"/></Button><Button x:Name="DownButton" Click="Down_Click"><FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74B;" FontSize="12" Width="16" Height="16"/></Button><Button x:Name="DeleteButton" Click="Delete_Click"/></StackPanel>
       </Grid>
      </Border>
@@ -602,7 +605,9 @@
        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE711;" FontSize="10" Width="14" Height="14"/>
       </Button>
      </Grid>
-     <ScrollViewer x:Name="OptionsScroll" Grid.Row="1" HorizontalContentAlignment="Stretch">
+     <Border Grid.Row="1" CornerRadius="8">
+      <Grid>
+     <ScrollViewer x:Name="OptionsScroll" HorizontalContentAlignment="Stretch">
       <Grid Padding="0,0,12,4" Background="Transparent" Tapped="EditorBackground_Tapped" DoubleTapped="EditorBackground_DoubleTapped" PointerReleased="EditorBackground_PointerReleased">
        <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="720"/></Grid.ColumnDefinitions>
        <StackPanel Spacing="12">
@@ -668,6 +673,16 @@
            <RadioButton x:Name="SystemThemeRadio" GroupName="AppTheme"/>
            <RadioButton x:Name="LightThemeRadio" GroupName="AppTheme"/>
            <RadioButton x:Name="DarkThemeRadio" GroupName="AppTheme"/>
+          </StackPanel>
+         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource SettingsCardStyle}">
+         <StackPanel Spacing="8">
+          <TextBlock x:Name="UiScaleTitle" Style="{ThemeResource BodyStrongTextBlockStyle}" FontSize="16" AutomationProperties.HeadingLevel="Level3"/>
+          <StackPanel>
+           <RadioButton x:Name="SmallUiRadio" GroupName="UiScale"/>
+           <RadioButton x:Name="DefaultUiRadio" GroupName="UiScale"/>
+           <RadioButton x:Name="LargeUiRadio" GroupName="UiScale"/>
           </StackPanel>
          </StackPanel>
         </Border>
@@ -760,10 +775,15 @@
           </Border>
           <Border Style="{StaticResource TransferCardStyle}" Padding="18,16" Margin="0,4,0,0">
            <StackPanel Spacing="10">
-            <Grid Width="48" Height="48" Margin="2,4,0,4" HorizontalAlignment="Left" IsHitTestVisible="False">
-             <Grid x:Name="StudioGlowHost"/>
-             <Image x:Name="StudioLogo" Source="ms-appx:///Assets/NeonGlow.png" ImageOpened="StudioLogo_ImageOpened" AutomationProperties.AccessibilityView="Raw"/>
+            <Grid Width="48" Height="48" Margin="2,4,0,4" HorizontalAlignment="Left">
+             <Grid x:Name="StudioGlowHost" IsHitTestVisible="False"/>
+             <Image x:Name="StudioLogo" Source="ms-appx:///Assets/NeonGlow.png" ImageOpened="StudioLogo_ImageOpened" PointerReleased="StudioLogo_PointerReleased" AutomationProperties.AccessibilityView="Raw"/>
             </Grid>
+            <StackPanel x:Name="DeveloperModePanel" Visibility="Collapsed" Spacing="6">
+             <TextBlock x:Name="EasterEggTitle" TextWrapping="Wrap" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/>
+             <TextBlock x:Name="EasterEggDescription" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+             <Button x:Name="RunOnboardingButton" Click="RunOnboarding_Click" HorizontalAlignment="Left"/>
+            </StackPanel>
             <StackPanel Spacing="4">
              <TextBlock x:Name="CreatedByLabel" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
              <TextBlock Text="A product studio for building great software." Language="en" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
@@ -782,15 +802,18 @@
        </StackPanel>
       </Grid>
      </ScrollViewer>
+       <Border x:Name="OptionsTopShadow" CornerRadius="8,8,0,0" Style="{StaticResource ScrollTopShadowStyle}"/>
+       <Border x:Name="OptionsBottomShadow" CornerRadius="0,0,8,8" Style="{StaticResource ScrollBottomShadowStyle}"/>
+      </Grid>
+     </Border>
      <ContentControl x:Name="OptionsStarterPicker" Grid.Row="1" Visibility="Collapsed" IsTabStop="False"
                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
-     <Border x:Name="OptionsTopShadow" Grid.Row="1" Style="{StaticResource ScrollTopShadowStyle}"/>
-     <Border x:Name="OptionsBottomShadow" Grid.Row="1" Style="{StaticResource ScrollBottomShadowStyle}"/>
 
     </Grid>
    </Border>
   </Grid>
   <Border x:Name="DialogBackdrop" Canvas.ZIndex="3" Background="#80000000" Visibility="Collapsed" IsHitTestVisible="False"/>
+  <Grid x:Name="DialogHost" Canvas.ZIndex="4" Visibility="Collapsed"/>
   <Grid x:Name="ToastHost" Canvas.ZIndex="2" Visibility="Collapsed" IsHitTestVisible="False"
         Margin="16,0,16,24" HorizontalAlignment="Center" VerticalAlignment="Bottom"
         MinWidth="224" MaxWidth="440">
@@ -806,4 +829,5 @@
    </Border>
   </Grid>
  </Grid>
+ </local:UiScalePanel>
 </Window>

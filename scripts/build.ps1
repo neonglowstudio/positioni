@@ -1,10 +1,16 @@
 param(
     [string]$Dotnet = 'dotnet',
-    [string]$OutputDirectory = 'outputs\Portable'
+    [string]$OutputDirectory
 )
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
+$workingBuild = Split-Path $projectRoot -Parent
+$localLayout = (Split-Path $projectRoot -Leaf) -eq 'Build' -and (Split-Path $workingBuild -Leaf) -eq 'Working build'
+if (!$OutputDirectory) {
+    $OutputDirectory = if ($localLayout) { Join-Path $workingBuild 'Output\Portable' }
+        else { Join-Path $projectRoot 'outputs\Portable' }
+}
 Push-Location $projectRoot
 try {
     $output = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
