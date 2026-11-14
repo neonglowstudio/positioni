@@ -62,18 +62,16 @@ English, Español, Português, Italiano, Français, and Deutsch.
 
 ### Import compatibility
 
-| Tool | Supported format |
-| --- | --- |
-| Positioni | `.json` |
-| [Sizer](https://www.brianapps.net/sizer4/) | `.xml` |
-| [WindowSizer](https://github.com/Mxlted/WindowSizer) | `.json` |
-| [FancyZones](https://learn.microsoft.com/en-us/windows/powertoys/fancyzones) | `.json` |
-| [DisplayFusion](https://www.displayfusion.com/HelpGuide/WindowPositionProfiles/) | `.json`, `.reg` |
-| [AutoHotkey v2](https://github.com/AutoHotkey/AutoHotkey) | Supported window shortcuts in `.ahk` files |
+Positioni can import profiles and shortcuts from the following tools.
+
+Positioni (`.json`), [Sizer](https://www.brianapps.net/sizer4/) (`.xml`), [WindowSizer](https://github.com/Mxlted/WindowSizer) (`.json`), [FancyZones](https://learn.microsoft.com/en-us/windows/powertoys/fancyzones) (`.json`), [DisplayFusion](https://www.displayfusion.com/HelpGuide/WindowPositionProfiles/) (`.json`, `.reg`), and [AutoHotkey v2](https://github.com/AutoHotkey/AutoHotkey) (supported shortcuts in `.ahk` files).
+
+<br>
 
 ### How updates work
+When automatic update checks are enabled, both the installed and portable editions can notify you when a new version is available and provide a direct download link to the latest version of your edition.
 
-Positioni can notify you when a new version is available. For the portable edition, download the new version from GitHub. The installed edition can apply updates in the app when Windows validates both signatures and their signing certificates match.
+<br>
 
 ### Code signing
 
