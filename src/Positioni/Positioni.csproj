@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.6.5" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2957" />
     <ProjectReference Include="../Positioni.Core/Positioni.Core.csproj" />
-    <Content Include="Assets\NeonGlow.png;Assets\Octicons-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Assets\neon-glow-logo.png;Assets\Octicons-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Positioni.png;Assets\PositioniWelcome.png;Assets\PositioniMotion.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Positioni.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

@@ -777,7 +777,7 @@
            <StackPanel Spacing="10">
             <Grid Width="48" Height="48" Margin="2,4,0,4" HorizontalAlignment="Left">
              <Grid x:Name="StudioGlowHost" IsHitTestVisible="False"/>
-             <Image x:Name="StudioLogo" Source="ms-appx:///Assets/NeonGlow.png" ImageOpened="StudioLogo_ImageOpened" PointerReleased="StudioLogo_PointerReleased" AutomationProperties.AccessibilityView="Raw"/>
+             <Image x:Name="StudioLogo" Source="ms-appx:///Assets/neon-glow-logo.png" ImageOpened="StudioLogo_ImageOpened" PointerReleased="StudioLogo_PointerReleased" AutomationProperties.AccessibilityView="Raw"/>
             </Grid>
             <StackPanel x:Name="DeveloperModePanel" Visibility="Collapsed" Spacing="6">
              <TextBlock x:Name="EasterEggTitle" TextWrapping="Wrap" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/>

@@ -133,7 +133,9 @@ Positioni's source code is licensed under the [GNU General Public License, versi
 
 ## About Neon Glow
 
-<img src="src/Positioni/Assets/NeonGlow.png" alt="Neon Glow logo" width="80">
+<picture>
+  <img src="src/Positioni/Assets/neon-glow-logo.png" alt="Neon Glow logo" width="80">
+</picture>
 
 **Designed and developed by Neon Glow**
 
