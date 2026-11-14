@@ -118,7 +118,7 @@ To build the installer as well, run `.\scripts\package.ps1` with Inno Setup 6 av
 
 ## License
 
-Positioni's source code is licensed under the [GNU General Public License, version 3 only](LICENSE). The [trademark and branding policy](TRADEMARKS.md) covers the Positioni name, logo, and app icon.
+Positioni's source code is licensed under the [GPLv3](LICENSE). The [trademark and branding policy](TRADEMARKS.md) covers the Positioni name, logo, and app icon.
 
 <br>
 
