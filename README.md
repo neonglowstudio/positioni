@@ -54,7 +54,12 @@ Positioni is a Windows app that lets you save window sizes and positions as prof
 
 ## Languages
 
-English, Español, Português, Italiano, Français, and Deutsch.
+- English
+- Spanish · Español
+- Portuguese · Português
+- Italian · Italiano
+- French · Français
+- German · Deutsch
 
 <br>
 
