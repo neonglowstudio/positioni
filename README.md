@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <img src="docs/images/positioni-logo.png" alt="Positioni" width="420">
+    <img src="https://raw.githubusercontent.com/neonglowstudio/positioni/97c3cc4f4a6859d466e366b2637b5f80a7753bad/docs/images/positioni-logo.png" alt="Positioni" width="420">
   </picture>
 </p>
 
@@ -18,7 +18,7 @@ Positioni is a Windows app that lets you save window sizes and positions as prof
 
 <p align="center">
   <picture>
-    <img src="docs/images/positioni-screenshot.png" alt="Positioni showing the starter profiles and the visual size and position editor" width="100%">
+    <img src="https://raw.githubusercontent.com/neonglowstudio/positioni/97c3cc4f4a6859d466e366b2637b5f80a7753bad/docs/images/positioni-screenshot.png" alt="Positioni showing the starter profiles and the visual size and position editor" width="100%">
   </picture>
 </p>
 
