@@ -26,12 +26,14 @@ Positioni is a Windows app that lets you save window sizes and positions as prof
 
 ## Download
 
-| Edition | How to start | Download link |
-| --- | --- | --- |
-| Installer | Run the setup executable. | [Download installer](https://github.com/neonglowstudio/positioni/releases/download/1.0.0/positioni-1.0.0-win-x64-setup.exe) |
-| Portable | Extract the whole ZIP and open `Positioni.exe`. | [Download&nbsp;portable](https://github.com/neonglowstudio/positioni/releases/download/1.0.0/positioni-1.0.0-win-x64-portable.zip) |
+**Latest version** `1.0.0`
 
-Both editions are built for Windows 11 x64 and include the required runtimes. Third-party runtime components are provided under their own terms, included with each download. Find version details and older downloads under [Releases](https://github.com/neonglowstudio/positioni/releases).
+| Edition | Platform | How to start | Download link |
+| --- | --- | --- | --- |
+| Installer | Windows 11 (x64) | Run the installer. | [Download&nbsp;1.0.0&nbsp;installer](https://github.com/neonglowstudio/positioni/releases/download/1.0.0/positioni-1.0.0-win-x64-setup.exe) |
+| Portable | Windows 11 (x64) | Extract the ZIP and open `Positioni.exe`. | [Download&nbsp;1.0.0&nbsp;portable](https://github.com/neonglowstudio/positioni/releases/download/1.0.0/positioni-1.0.0-win-x64-portable.zip) |
+
+See the version history on the [Releases page](https://github.com/neonglowstudio/positioni/releases).
 
 <br>
 
@@ -42,10 +44,11 @@ Both editions are built for Windows 11 x64 and include the required runtimes. Th
 - Use nine relative positions, exact coordinates, or resize a window in place.
 - Assign global shortcuts to profiles, pause them together, or disable them individually.
 - Choose from ten starter profiles or start with an empty list.
-- Export profiles as JSON and select which profiles to import from Positioni, [Sizer](https://www.brianapps.net/sizer4/), [WindowSizer](https://github.com/Mxlted/WindowSizer), [FancyZones](https://learn.microsoft.com/en-us/windows/powertoys/fancyzones), [DisplayFusion](https://www.displayfusion.com/HelpGuide/WindowPositionProfiles/), or supported [AutoHotkey v2](https://github.com/AutoHotkey/AutoHotkey) bindings.
-- Start in the system tray when signing in to Windows. Choose whether closing the window keeps the app running.
-- Follow the system theme or choose light or dark.
-- Check GitHub automatically or on demand for updates. View release notes and download the matching edition. The installed edition can apply updates in the app when Windows validates both signatures and their signing certificates match.
+- Back up and restore your profiles, or import profiles from other window management tools.
+- Start in the system tray when Windows starts.
+- Light and dark modes.
+- Adjustable interface size.
+- Automatic update checks.
 
 <br>
 
@@ -55,11 +58,26 @@ English, Español, Português, Italiano, Français, and Deutsch.
 
 <br>
 
-## Quick start
+## Additional information
 
-1. Select **Add profile** to create one, or select **Choose starter profiles** to start with a ready-to-use profile.
-2. Set the window size and position, assign a shortcut, and save.
-3. Focus the window you want to move or resize and press the shortcut.
+### Import compatibility
+
+| Tool | Supported format |
+| --- | --- |
+| Positioni | `.json` |
+| [Sizer](https://www.brianapps.net/sizer4/) | `.xml` |
+| [WindowSizer](https://github.com/Mxlted/WindowSizer) | `.json` |
+| [FancyZones](https://learn.microsoft.com/en-us/windows/powertoys/fancyzones) | `.json` |
+| [DisplayFusion](https://www.displayfusion.com/HelpGuide/WindowPositionProfiles/) | `.json`, `.reg` |
+| [AutoHotkey v2](https://github.com/AutoHotkey/AutoHotkey) | Supported window shortcuts in `.ahk` files |
+
+### How updates work
+
+Positioni can notify you when a new version is available. For the portable edition, download the new version from GitHub. The installed edition can apply updates in the app when Windows validates both signatures and their signing certificates match.
+
+### Code signing
+
+The installer and portable executable are unsigned.
 
 <br>
 
