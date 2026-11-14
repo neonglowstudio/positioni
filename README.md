@@ -26,7 +26,7 @@ Positioni is a Windows app that lets you save window sizes and positions as prof
 
 ## Download
 
-**Latest version** `1.1.0` · [Changelog](https://github.com/neonglowstudio/positioni/releases/latest)
+**Latest version** `1.1.0` · [Changelog](https://github.com/neonglowstudio/positioni/releases/tag/1.1.0)
 
 | Edition | Platform | How to start | Download link |
 | --- | --- | --- | --- |
