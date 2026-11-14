@@ -116,12 +116,27 @@ To build the installer as well, run `.\scripts\package.ps1` with Inno Setup 6 av
 
 <br>
 
-## License and credits
+## License
 
 Positioni's source code is licensed under the [GNU General Public License, version 3 only](LICENSE). The [trademark and branding policy](TRADEMARKS.md) covers the Positioni name, logo, and app icon.
 
-- Designed and developed by [Neon Glow](https://neonglow.studio/).
+<br>
+
+## Credits
+
 - Positioni wordmark set in [Speltale](https://indieground.net/product/speltale-font/) by [Indieground Design](https://indieground.net/).
 - Interface icons: [Segoe Fluent Icons](https://learn.microsoft.com/windows/apps/design/iconography/segoe-fluent-icons-font) by [Microsoft](https://www.microsoft.com/).
 - GitHub icon: [Octicons](https://github.com/primer/octicons) by [Primer](https://primer.style/).
 - Development assistance: [Codex](https://github.com/openai/codex) by [OpenAI](https://openai.com/).
+
+<br>
+
+## About Neon Glow
+
+<img src="src/Positioni/Assets/NeonGlow.png" alt="Neon Glow logo" width="80">
+
+**Designed and developed by Neon Glow**
+
+A product studio for building great software.
+
+[Neon Glow website ↗](https://neonglow.studio/)
