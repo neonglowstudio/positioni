@@ -6,32 +6,35 @@
 #endif
 
 #define AppName "Positioni"
+#define InstallerBaseName "positioni-" + AppVersion + "-win-x64-installer"
 #define Publisher "Neon Glow"
 #define Website "https://neonglow.studio/"
 #define Repository "https://github.com/neonglowstudio/positioni"
 
 [Setup]
-AppId=NeonGlow.WindowPositioner
+AppId=NeonGlow.Positioni
 AppName={#AppName}
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}
+VersionInfoDescription={#AppName} installer
+VersionInfoOriginalFileName={#InstallerBaseName}.exe
 AppPublisher={#Publisher}
 AppPublisherURL={#Website}
 AppSupportURL={#Repository}/issues
 AppUpdatesURL={#Repository}/releases
-DefaultDirName={localappdata}\Programs\Positioni
+DefaultDirName={localappdata}\Programs\Neon Glow\Positioni
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 MinVersion=10.0.22000
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-AppMutex=Local\WindowPositioner.Desktop
+AppMutex=Local\Positioni.Desktop
 CloseApplications=no
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\Positioni.exe
 SetupIconFile=..\src\Positioni\Assets\Positioni.ico
-OutputBaseFilename=positioni-{#AppVersion}-win-x64-installer
+OutputBaseFilename={#InstallerBaseName}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern dynamic
@@ -173,7 +176,7 @@ en.ConfirmExit=Do you want to exit the installation?
 en.ExitExplanation=The installation is still incomplete. If you exit now, Positioni won’t be installed.
 en.OpenAfterInstall=Open Positioni after installation
 en.StartMenuShortcut=Create a Start menu shortcut
-en.StartWithWindows=Start Positioni in the system tray at sign-in
+en.StartWithWindows=Start Positioni in the system tray when signing in to Windows
 es.CreateDesktopIcon=Crear un acceso directo en el escritorio
 es.ContinueButton=Continuar
 es.InstallInProgress=La instalación todavía está en curso.
@@ -184,7 +187,7 @@ es.ConfirmExit=¿Quieres salir de la instalación?
 es.ExitExplanation=La instalación todavía no se completó. Si sales ahora, Positioni no se instalará.
 es.OpenAfterInstall=Ejecutar Positioni al finalizar la instalación
 es.StartMenuShortcut=Crear un acceso directo en el menú Inicio
-es.StartWithWindows=Iniciar Positioni en la bandeja del sistema al iniciar sesión
+es.StartWithWindows=Iniciar Positioni en la bandeja del sistema al iniciar sesión en Windows
 pt.ContinueButton=Continuar
 pt.InstallInProgress=A instalação ainda está em andamento.
 pt.UninstallCloseButton=Fechar
@@ -214,7 +217,7 @@ fr.ConfirmExit=Voulez-vous quitter l’installation ?
 fr.ExitExplanation=L’installation n’est pas encore terminée. Si vous quittez maintenant, Positioni ne sera pas installé.
 fr.OpenAfterInstall=Ouvrir Positioni après l’installation
 fr.StartMenuShortcut=Créer un raccourci dans le menu Démarrer
-fr.StartWithWindows=Lancer Positioni dans la zone de notification à l’ouverture de session
+fr.StartWithWindows=Lancer Positioni dans la zone de notification à l’ouverture de session Windows
 de.ContinueButton=Fortfahren
 de.InstallInProgress=Die Installation läuft noch.
 de.UninstallCloseButton=Schließen
@@ -224,7 +227,7 @@ de.ConfirmExit=Möchtest du die Installation beenden?
 de.ExitExplanation=Die Installation ist noch nicht abgeschlossen. Wenn du jetzt beendest, wird Positioni nicht installiert.
 de.OpenAfterInstall=Positioni nach der Installation öffnen
 de.StartMenuShortcut=Eine Verknüpfung im Startmenü erstellen
-de.StartWithWindows=Positioni bei der Anmeldung im Infobereich starten
+de.StartWithWindows=Positioni bei der Windows-Anmeldung im Infobereich starten
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
@@ -242,7 +245,7 @@ Name: "{userdesktop}\Positioni"; Filename: "{app}\Positioni.exe"; WorkingDir: "{
 [Code]
 const
   RunKey = 'Software\Microsoft\Windows\CurrentVersion\Run';
-  RunValue = 'WindowPositioner';
+  RunValue = 'Positioni';
   WhCbt = 5;
   HcbtActivate = 5;
   GwChild = 5;
@@ -729,26 +732,15 @@ begin
     if not WizardIsTaskSelected('desktopicon') then
       DeleteFile(ExpandConstant('{userdesktop}\Positioni.lnk'));
   end;
-
-  if FileExists(ExpandConstant('{app}\WindowPositioner.exe')) then
-  begin
-    DeleteFile(ExpandConstant('{userprograms}\Window Positioner.lnk'));
-    DeleteFile(ExpandConstant('{app}\WindowPositioner.exe'));
-    DeleteFile(ExpandConstant('{app}\WindowPositioner.dll'));
-    DeleteFile(ExpandConstant('{app}\WindowPositioner.Core.dll'));
-    DeleteFile(ExpandConstant('{app}\WindowPositioner.deps.json'));
-    DeleteFile(ExpandConstant('{app}\WindowPositioner.runtimeconfig.json'));
-    DeleteFile(ExpandConstant('{app}\WindowPositioner.pri'));
-    DeleteFile(ExpandConstant('{app}\Assets\WindowPositioner.ico'));
-  end;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   ExistingCommand: String;
 begin
-  if CurUninstallStep = usUninstall then
-    if RegQueryStringValue(HKCU, RunKey, RunValue, ExistingCommand) then
-      if CompareText(ExistingCommand, InstalledCommand) = 0 then
-        RegDeleteValue(HKCU, RunKey, RunValue);
+  if CurUninstallStep <> usUninstall then
+    Exit;
+  if RegQueryStringValue(HKCU, RunKey, RunValue, ExistingCommand) then
+    if CompareText(ExistingCommand, InstalledCommand) = 0 then
+      RegDeleteValue(HKCU, RunKey, RunValue);
 end;

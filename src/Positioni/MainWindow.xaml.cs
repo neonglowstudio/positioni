@@ -34,7 +34,9 @@ public sealed partial class MainWindow : Window
     private bool applyingLanguage;
     private string[] placements = [];
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string RunValue = "WindowPositioner";
+    private const string RunValue = "Positioni";
+    private const string StartupApprovalKey = @"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
+    private bool startupDisabledByWindows;
     private string? otherStartupCopy, startupSettingError;
     private static readonly string[] ImportSources = ["Positioni (.json)", "Sizer (.xml)", "WindowSizer (.json)", "FancyZones (.json)", "DisplayFusion (.json, .reg)", "AutoHotkey v2 (.ahk)"];
     private static readonly string[] LanguageNames = ["English", "Español", "Português", "Italiano", "Français", "Deutsch"];
@@ -52,7 +54,6 @@ public sealed partial class MainWindow : Window
         AppWindow.SetIcon(Native.AppIconPath);
         RestoreWindowSize();
         statusTimer.Tick += (_, _) => DismissToast();
-        LanguageInput.ItemsSource = LanguageNames;
         ImportSource.ItemsSource = ImportSources;
         ImportSource.SelectedIndex = 0;
         PresetList.ItemsSource = presets;
@@ -79,6 +80,11 @@ public sealed partial class MainWindow : Window
         host.Quit = () => { host.Quitting = true; Close(); };
         Closed += (_, _) => { ClearStatus(); host.Dispose(); };
         LoadStartupSetting();
+        Activated += (_, args) =>
+        {
+            if (args.WindowActivationState != WindowActivationState.Deactivated && OptionsOpen)
+                LoadStartupSetting();
+        };
         InitializeCloseBehavior();
         InitializeTheme();
         InitializeUiScale();
@@ -210,6 +216,13 @@ public sealed partial class MainWindow : Window
     {
         applyingLanguage = loading = true;
         Root.Language = Language;
+        string[] languageLabels = LanguageCodes.Select((code, index) =>
+        {
+            string localizedName = Get("LanguageName_" + code);
+            string nativeName = LanguageNames[index];
+            return localizedName == nativeName ? nativeName : $"{localizedName} • {nativeName}";
+        }).ToArray();
+        LanguageInput.ItemsSource = languageLabels;
         LanguageInput.SelectedIndex = LanguageCodes.ToList().IndexOf(Language);
         LanguageLabel.Text = Get("Language");
         AutomationProperties.SetName(LanguageInput, LanguageLabel.Text);
@@ -230,8 +243,7 @@ public sealed partial class MainWindow : Window
         ImportSourceLabel.Text = Get("ImportSource");
         AutomationProperties.SetName(ImportSource, ImportSourceLabel.Text);
         FitComboBoxToItems(ImportSource, ImportSources);
-        FitComboBoxToItems(LanguageInput, LanguageNames);
-        DescriptionLabel.Text = Get("Description");
+        FitComboBoxToItems(LanguageInput, languageLabels);
         UpdatePauseButton();
         AddButton.Content = EmptyAddProfileText.Text = Get("Add");
         AutomationProperties.SetName(EmptyAddProfileButton, EmptyAddProfileText.Text);
@@ -254,6 +266,7 @@ public sealed partial class MainWindow : Window
         RefreshUpdateUi();
         Startup.Content = Get("Startup");
         UseStartupCopyButton.Content = Get("StartupUseThisCopy");
+        OpenStartupAppsButton.Content = Get("StartupOpenApps");
         UpdateStartupConflictText();
         BackupsLabel.Text = Get("Backups");
         BackupHintLabel.Text = Get("BackupHint");
@@ -267,13 +280,21 @@ public sealed partial class MainWindow : Window
         SpellCheckHint.Text = Get("SpellCheckHint");
         AutomationProperties.SetHelpText(DisableSpellCheck, SpellCheckHint.Text);
         AboutLabel.Text = Get("About");
-        VersionLabel.Text = Get("Version", typeof(MainWindow).Assembly.GetName().Version!.ToString(3));
+        AboutDescription.Text = Get("Description");
+        VersionLabel.Text = Get("Version");
+        VersionNumber.Text = typeof(MainWindow).Assembly.GetName().Version!.ToString(3);
+        ChangelogLinkLabel.Text = Get("Changelog");
+        AutomationProperties.SetName(ChangelogLink, ChangelogLinkLabel.Text);
         CreatedByLabel.Text = Get("CreatedBy");
         EasterEggTitle.Text = Get("EasterEggTitle");
         EasterEggDescription.Text = Get("EasterEggDescription");
         RunOnboardingButton.Content = Get("RunOnboarding");
         RepositoryLinkLabel.Text = Get("Repository");
         AutomationProperties.SetName(RepositoryLink, RepositoryLinkLabel.Text);
+        ProductWebsiteLinkLabel.Text = Get("ProductWebsite");
+        AutomationProperties.SetName(ProductWebsiteLink, ProductWebsiteLinkLabel.Text);
+        StudioLinkLabel.Text = Get("StudioWebsite");
+        AutomationProperties.SetName(StudioLink, StudioLinkLabel.Text);
         DuplicateButton.Content = Get("Duplicate");
         AutomationProperties.SetName(UpButton, Get("MoveUp"));
         AutomationProperties.SetName(DownButton, Get("MoveDown"));
@@ -1008,8 +1029,7 @@ public sealed partial class MainWindow : Window
         if (!Path.IsPathFullyQualified(path)) return null;
 
         string fileName = Path.GetFileName(path);
-        return fileName.Equals("Positioni.exe", StringComparison.OrdinalIgnoreCase) ||
-            fileName.Equals("WindowPositioner.exe", StringComparison.OrdinalIgnoreCase)
+        return fileName.Equals("Positioni.exe", StringComparison.OrdinalIgnoreCase)
             ? Path.GetFullPath(path) : null;
     }
 
@@ -1029,13 +1049,15 @@ public sealed partial class MainWindow : Window
     private void LoadStartupSetting()
     {
         otherStartupCopy = startupSettingError = null;
+        startupDisabledByWindows = false;
         StartupConflict.Visibility = Visibility.Collapsed;
         Startup.IsChecked = false;
         Startup.IsEnabled = true;
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(RunKey, writable: true);
-            if (key?.GetValue(RunValue) is not string command || string.IsNullOrWhiteSpace(command)) return;
+            if (key is null) return;
+            if (key.GetValue(RunValue) is not string command || string.IsNullOrWhiteSpace(command)) return;
 
             string? registeredPath = GetStartupPath(command);
             bool currentCopy = string.Equals(registeredPath, StartupExecutable, StringComparison.OrdinalIgnoreCase) ||
@@ -1044,6 +1066,15 @@ public sealed partial class MainWindow : Window
             {
                 if (!string.Equals(command, StartupCommand, StringComparison.OrdinalIgnoreCase))
                     key.SetValue(RunValue, StartupCommand);
+                if (IsStartupDisabledByWindows())
+                {
+                    startupDisabledByWindows = true;
+                    Startup.IsEnabled = false;
+                    UpdateStartupConflictText();
+                    StartupConflict.Visibility = Visibility.Visible;
+                    return;
+                }
+
                 Startup.IsChecked = true;
                 return;
             }
@@ -1062,11 +1093,31 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private static bool IsStartupDisabledByWindows()
+    {
+        using var approval = Registry.CurrentUser.OpenSubKey(StartupApprovalKey);
+        // The shell stores its per-user toggle separately from the Run command.
+        return approval?.GetValue(RunValue) is byte[] { Length: >= 4 } state &&
+            BitConverter.ToUInt32(state, 0) == 3;
+    }
+
+    private async void OpenStartupApps_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (await Launcher.LaunchUriAsync(new Uri("ms-settings:startupapps"))) return;
+        }
+        catch (Exception) { }
+        Notify(Get("StartupOpenAppsError"), true);
+    }
+
     private void UpdateStartupConflictText()
     {
         StartupConflictText.Text = startupSettingError is { } error ? Get("StartupError", error)
+            : startupDisabledByWindows ? Get("StartupDisabledByWindows")
             : otherStartupCopy is { } path ? Get("StartupOtherCopy", path) : Get("StartupUnknownCopy");
-        UseStartupCopyButton.Visibility = startupSettingError is null ? Visibility.Visible : Visibility.Collapsed;
+        UseStartupCopyButton.Visibility = startupSettingError is null && !startupDisabledByWindows ? Visibility.Visible : Visibility.Collapsed;
+        OpenStartupAppsButton.Visibility = startupDisabledByWindows ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void Startup_Click(object sender, RoutedEventArgs e) => SetStartup(Startup.IsChecked == true);

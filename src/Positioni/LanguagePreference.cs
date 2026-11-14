@@ -5,8 +5,8 @@ namespace Positioni;
 internal static class LanguagePreference
 {
     public static string DataDirectory { get; } =
-        Environment.GetEnvironmentVariable("WINDOW_POSITIONER_DATA_DIR")
-        ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WindowPositioner");
+        Environment.GetEnvironmentVariable("POSITIONI_DATA_DIR")
+        ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Positioni");
 
     private static string LanguagePath => Path.Combine(DataDirectory, "language.txt");
 

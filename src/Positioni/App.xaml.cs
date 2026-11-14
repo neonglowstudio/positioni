@@ -21,7 +21,7 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        instance = new Mutex(true, "Local\\WindowPositioner.Desktop", out bool first);
+        instance = new Mutex(true, "Local\\Positioni.Desktop", out bool first);
         if (!first)
         {
             if (!startInTray)

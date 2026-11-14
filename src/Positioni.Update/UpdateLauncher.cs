@@ -2,7 +2,12 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
+
+[assembly: AssemblyTitle("Positioni update helper")]
+[assembly: AssemblyProduct("Positioni")]
+[assembly: AssemblyCompany("Neon Glow")]
 
 internal static class UpdateLauncher
 {
