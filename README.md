@@ -88,7 +88,9 @@ The installer and portable executable are unsigned.
 
 ## Privacy
 
-Profiles and settings are stored on your device. Positioni has no accounts, ads, or telemetry. Positioni checks the [releases in this GitHub repository](https://github.com/neonglowstudio/positioni/releases) for updates.
+Positioni stores your profiles and settings on your device. It has no accounts, ads, or telemetry.
+
+When you check for updates manually or enable automatic checks, Positioni queries the GitHub API for the latest release. The request includes the app name and version. Your profiles and settings stay on your device.
 
 <br>
 
@@ -106,13 +108,19 @@ Profiles and settings are stored on your device. Positioni has no accounts, ads,
 
 ## Build from source
 
-The build and packaging scripts use PowerShell. On Windows x64 with the .NET 11 SDK installed, run:
+On Windows x64, install the .NET 11 SDK and run this command in PowerShell from the repository root.
 
 ```powershell
 .\scripts\build.ps1
 ```
 
-To build the installer as well, run `.\scripts\package.ps1` with Inno Setup 6 available. Pass `-Iscc` if the compiler is outside your PATH.
+The portable build is saved to `outputs\Portable`. To build the installer as well, install Inno Setup 6 and run:
+
+```powershell
+.\scripts\package.ps1
+```
+
+The installer is saved to `outputs\Installer`. If the Inno Setup compiler is outside your `PATH`, pass its path with `-Iscc`.
 
 <br>
 
