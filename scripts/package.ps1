@@ -34,7 +34,7 @@ $preserveStage = $false
 Push-Location $projectRoot
 try {
     New-Item -ItemType Directory -Force -Path $stage, $installerOutput | Out-Null
-    & (Join-Path $PSScriptRoot 'build.ps1') -Dotnet $Dotnet -OutputDirectory $publish | Out-Host
+    & (Join-Path $PSScriptRoot 'build.ps1') -Dotnet $Dotnet -OutputDirectory $publish -Stable:$Release | Out-Host
     $installerFiles = Join-Path $publish 'Files'
     & $Iscc "/DAppVersion=$version" "/DPublishDir=$installerFiles" "/O$stage" $installer
     if ($LASTEXITCODE -ne 0) { throw 'The installer could not be built.' }
@@ -54,6 +54,14 @@ try {
             $archive.Dispose()
         }
         Copy-Item -LiteralPath $setup -Destination $releaseStage
+
+        New-Item -ItemType Directory -Force -Path $releaseRoot | Out-Null
+        if ((Resolve-Path -LiteralPath $releaseRoot).Path -ne $releaseRoot) {
+            throw 'Unexpected release directory.'
+        }
+        [IO.Directory]::Move($releaseStage, $releaseDirectory)
+        Write-Output $releaseDirectory
+        return
     }
 
     $resolvedOutput = (Resolve-Path -LiteralPath $output).Path
@@ -94,14 +102,6 @@ try {
     Write-Output (Join-Path $portable 'Positioni.exe')
     Write-Output $setupOutput
 
-    if ($Release) {
-        New-Item -ItemType Directory -Force -Path $releaseRoot | Out-Null
-        if ((Resolve-Path -LiteralPath $releaseRoot).Path -ne $releaseRoot) {
-            throw 'Unexpected release directory.'
-        }
-        [IO.Directory]::Move($releaseStage, $releaseDirectory)
-        Write-Output $releaseDirectory
-    }
 } finally {
     Pop-Location
     if (-not $preserveStage -and (Test-Path -LiteralPath $stage)) {

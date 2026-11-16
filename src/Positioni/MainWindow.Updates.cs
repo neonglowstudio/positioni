@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Reflection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Positioni.Core;
@@ -14,6 +15,9 @@ public sealed partial class MainWindow
     private enum UpdateState { Idle, Checking, Current, Available, Error, Downloading, Unsafe, DemoComplete }
 
     private static readonly Version CurrentVersion = new(typeof(MainWindow).Assembly.GetName().Version!.ToString(3));
+    private static readonly bool IsWorkingBuild = typeof(MainWindow).Assembly
+        .GetCustomAttributes<AssemblyMetadataAttribute>()
+        .Any(attribute => attribute.Key == "PositioniBuildChannel" && attribute.Value == "Working");
     private static readonly HttpClient UpdateClient = CreateUpdateClient();
     private static readonly string UpdatePreference = Path.Combine(LanguagePreference.DataDirectory, "updates-auto.txt");
     private readonly DispatcherTimer updateTimer = new() { Interval = TimeSpan.FromHours(24) };
@@ -39,6 +43,8 @@ public sealed partial class MainWindow
 
     private void InitializeUpdates()
     {
+        if (IsWorkingBuild) return;
+
         portableUpdate = updateDemo == "--demo-update=portable" ||
             (updateDemo == null && !Directory.EnumerateFiles(AppContext.BaseDirectory, "unins*.exe").Any());
         try { automaticUpdates = updateDemo != null || (File.Exists(UpdatePreference) && File.ReadAllText(UpdatePreference) == "1"); }
@@ -58,6 +64,14 @@ public sealed partial class MainWindow
     private void RefreshUpdateUi()
     {
         UpdatesTitle.Text = Get("UpdatesTitle");
+        if (IsWorkingBuild)
+        {
+            AutoUpdateCheck.Visibility = CheckUpdateButton.Visibility = Visibility.Collapsed;
+            UpdateMessage.Text = Get("UpdatesWorkingBuild");
+            UpdateMessage.Visibility = Visibility.Visible;
+            return;
+        }
+
         AutoUpdateCheck.Content = Get("UpdatesAuto");
         CheckUpdateButton.Content = Get("UpdatesCheck");
         UpdateAvailableButton.Content = Get("UpdatesAvailableButton");
@@ -132,7 +146,7 @@ public sealed partial class MainWindow
 
     private async Task CheckForUpdatesAsync(bool manual)
     {
-        if (checkingUpdates || applyingUpdate) return;
+        if (IsWorkingBuild || checkingUpdates || applyingUpdate) return;
         checkingUpdates = true;
         if (manual)
         {

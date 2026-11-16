@@ -14,7 +14,7 @@
     <SelfContained>true</SelfContained>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Company>Neon Glow</Company>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
@@ -25,6 +25,9 @@
     <Content Include="Assets\neon-glow-logo.png;Assets\Octicons-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Positioni.png;Assets\PositioniWelcome.png;Assets\PositioniMotion.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Positioni.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PositioniStableBuild)' != 'true'">
+    <AssemblyMetadata Include="PositioniBuildChannel" Value="Working" />
   </ItemGroup>
   <Target Name="PublishCompiledXaml" AfterTargets="Publish">
     <ItemGroup>

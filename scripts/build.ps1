@@ -1,6 +1,7 @@
 param(
     [string]$Dotnet = 'dotnet',
-    [string]$OutputDirectory
+    [string]$OutputDirectory,
+    [switch]$Stable
 )
 
 $ErrorActionPreference = 'Stop'
@@ -17,7 +18,7 @@ try {
     $files = Join-Path $output 'Files'
     $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
     $env:DOTNET_CLI_HOME = Join-Path $projectRoot 'work\dotnet-home'
-    & $Dotnet publish 'src\Positioni\Positioni.csproj' -c Release -p:Platform=x64 -p:DebugType=None -o $files -v:minimal
+    & $Dotnet publish 'src\Positioni\Positioni.csproj' -c Release -p:Platform=x64 -p:DebugType=None "-p:PositioniStableBuild=$($Stable.IsPresent.ToString().ToLowerInvariant())" -o $files -v:minimal
     if ($LASTEXITCODE -ne 0) { throw 'Positioni could not be built.' }
 
     Copy-Item -LiteralPath @('LICENSE', 'TRADEMARKS.md') -Destination $files

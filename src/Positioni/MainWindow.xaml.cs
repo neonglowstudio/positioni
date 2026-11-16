@@ -267,6 +267,8 @@ public sealed partial class MainWindow : Window
         Startup.Content = Get("Startup");
         UseStartupCopyButton.Content = Get("StartupUseThisCopy");
         OpenStartupAppsButton.Content = Get("StartupOpenApps");
+        OpenStartupDirectoryLabel.Text = Get("StartupOpenDirectory");
+        AutomationProperties.SetName(OpenStartupDirectoryLink, OpenStartupDirectoryLabel.Text);
         UpdateStartupConflictText();
         BackupsLabel.Text = Get("Backups");
         BackupHintLabel.Text = Get("BackupHint");
@@ -282,7 +284,9 @@ public sealed partial class MainWindow : Window
         AboutLabel.Text = Get("About");
         AboutDescription.Text = Get("Description");
         VersionLabel.Text = Get("Version");
-        VersionNumber.Text = typeof(MainWindow).Assembly.GetName().Version!.ToString(3);
+        VersionNumber.Text = IsWorkingBuild ? "Working build" : CurrentVersion.ToString(3);
+        VersionLabel.Visibility = ChangelogSeparator.Visibility = ChangelogLink.Visibility =
+            IsWorkingBuild ? Visibility.Collapsed : Visibility.Visible;
         ChangelogLinkLabel.Text = Get("Changelog");
         AutomationProperties.SetName(ChangelogLink, ChangelogLinkLabel.Text);
         CreatedByLabel.Text = Get("CreatedBy");
@@ -1111,11 +1115,26 @@ public sealed partial class MainWindow : Window
         Notify(Get("StartupOpenAppsError"), true);
     }
 
+    private async void OpenStartupDirectory_Click(object sender, RoutedEventArgs e)
+    {
+        if (otherStartupCopy is not { } path || Path.GetDirectoryName(path) is not { } directory) return;
+        try
+        {
+            var folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(directory);
+            if (await Launcher.LaunchFolderAsync(folder)) return;
+        }
+        catch (Exception) { }
+        Notify(Get("StartupOpenDirectoryError"), true);
+    }
+
     private void UpdateStartupConflictText()
     {
         StartupConflictText.Text = startupSettingError is { } error ? Get("StartupError", error)
             : startupDisabledByWindows ? Get("StartupDisabledByWindows")
-            : otherStartupCopy is { } path ? Get("StartupOtherCopy", path) : Get("StartupUnknownCopy");
+            : otherStartupCopy is not null ? Get("StartupOtherCopy") : Get("StartupUnknownCopy");
+        StartupCopyPath.Text = otherStartupCopy ?? "";
+        StartupCopyLocation.Visibility = startupSettingError is null && !startupDisabledByWindows && otherStartupCopy is not null
+            ? Visibility.Visible : Visibility.Collapsed;
         UseStartupCopyButton.Visibility = startupSettingError is null && !startupDisabledByWindows ? Visibility.Visible : Visibility.Collapsed;
         OpenStartupAppsButton.Visibility = startupDisabledByWindows ? Visibility.Visible : Visibility.Collapsed;
     }

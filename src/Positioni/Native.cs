@@ -286,7 +286,8 @@ internal sealed class DesktopHost : IDisposable
         }
         if (msg==0x8001)
         {
-            if ((int)lp==0x203) Open?.Invoke();
+            const int leftButtonUp = 0x0202;
+            if ((int)lp == leftButtonUp) Open?.Invoke();
             if ((int)lp==0x205)
             {
                 var menu=Native.CreatePopupMenu();
