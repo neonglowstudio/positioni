@@ -26,12 +26,12 @@ Positioni is a Windows app that lets you save window sizes and positions as prof
 
 ## Download
 
-**Latest version** `1.2.1` • [Changelog](https://github.com/neonglowstudio/positioni/releases/tag/1.2.1)
+**Latest version** `1.2.2` • [Changelog](https://github.com/neonglowstudio/positioni/releases/tag/1.2.2)
 
 | Edition | Platform | How to start | Download link |
 | --- | --- | --- | --- |
-| Installer | Windows 11 (x64) | Run the installer. | [Download&nbsp;1.2.1&nbsp;installer](https://github.com/neonglowstudio/positioni/releases/download/1.2.1/positioni-1.2.1-win-x64-installer.exe) |
-| Portable | Windows 11 (x64) | Extract the ZIP and open `Positioni.exe`. | [Download&nbsp;1.2.1&nbsp;portable](https://github.com/neonglowstudio/positioni/releases/download/1.2.1/positioni-1.2.1-win-x64-portable.zip) |
+| Installer | Windows 11 (x64) | Run the installer. | [Download&nbsp;1.2.2&nbsp;installer](https://github.com/neonglowstudio/positioni/releases/download/1.2.2/positioni-1.2.2-win-x64-installer.exe) |
+| Portable | Windows 11 (x64) | Extract the ZIP and open `Positioni.exe`. | [Download&nbsp;1.2.2&nbsp;portable](https://github.com/neonglowstudio/positioni/releases/download/1.2.2/positioni-1.2.2-win-x64-portable.zip) |
 
 [Version history](https://github.com/neonglowstudio/positioni/releases)
 

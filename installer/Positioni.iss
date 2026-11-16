@@ -1,4 +1,4 @@
-﻿#ifndef AppVersion
+#ifndef AppVersion
   #error Supply AppVersion using /DAppVersion
 #endif
 #ifndef PublishDir
@@ -177,6 +177,7 @@ en.ExitExplanation=The installation is still incomplete. If you exit now, Positi
 en.OpenAfterInstall=Open Positioni after installation
 en.StartMenuShortcut=Create a Start menu shortcut
 en.StartWithWindows=Start Positioni in the system tray when signing in to Windows
+en.CheckForUpdates=Check for updates automatically
 es.CreateDesktopIcon=Crear un acceso directo en el escritorio
 es.ContinueButton=Continuar
 es.InstallInProgress=La instalación todavía está en curso.
@@ -188,6 +189,7 @@ es.ExitExplanation=La instalación todavía no se completó. Si sales ahora, Pos
 es.OpenAfterInstall=Ejecutar Positioni al finalizar la instalación
 es.StartMenuShortcut=Crear un acceso directo en el menú Inicio
 es.StartWithWindows=Iniciar Positioni en la bandeja del sistema al iniciar sesión en Windows
+es.CheckForUpdates=Buscar actualizaciones automáticamente
 pt.ContinueButton=Continuar
 pt.InstallInProgress=A instalação ainda está em andamento.
 pt.UninstallCloseButton=Fechar
@@ -198,6 +200,7 @@ pt.ExitExplanation=A instalação ainda não foi concluída. Se sair agora, o Po
 pt.OpenAfterInstall=Abrir o Positioni após a instalação
 pt.StartMenuShortcut=Criar um atalho no menu Iniciar
 pt.StartWithWindows=Iniciar o Positioni na área de notificação ao entrar no Windows
+pt.CheckForUpdates=Procurar atualizações automaticamente
 it.ContinueButton=Continua
 it.InstallInProgress=L’installazione è ancora in corso.
 it.UninstallCloseButton=Chiudi
@@ -208,6 +211,7 @@ it.ExitExplanation=L’installazione non è ancora completata. Se esci ora, Posi
 it.OpenAfterInstall=Apri Positioni al termine dell’installazione
 it.StartMenuShortcut=Crea un collegamento nel menu Start
 it.StartWithWindows=Avvia Positioni nell’area di notifica all’accesso a Windows
+it.CheckForUpdates=Verifica automaticamente la disponibilità di aggiornamenti
 fr.ContinueButton=Continuer
 fr.InstallInProgress=L’installation est toujours en cours.
 fr.UninstallCloseButton=Fermer
@@ -218,6 +222,7 @@ fr.ExitExplanation=L’installation n’est pas encore terminée. Si vous quitte
 fr.OpenAfterInstall=Ouvrir Positioni après l’installation
 fr.StartMenuShortcut=Créer un raccourci dans le menu Démarrer
 fr.StartWithWindows=Lancer Positioni dans la zone de notification à l’ouverture de session Windows
+fr.CheckForUpdates=Rechercher automatiquement les mises à jour
 de.ContinueButton=Fortfahren
 de.InstallInProgress=Die Installation läuft noch.
 de.UninstallCloseButton=Schließen
@@ -228,11 +233,13 @@ de.ExitExplanation=Die Installation ist noch nicht abgeschlossen. Wenn du jetzt 
 de.OpenAfterInstall=Positioni nach der Installation öffnen
 de.StartMenuShortcut=Eine Verknüpfung im Startmenü erstellen
 de.StartWithWindows=Positioni bei der Windows-Anmeldung im Infobereich starten
+de.CheckForUpdates=Automatisch nach Updates suchen
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
 Name: "startmenu"; Description: "{cm:StartMenuShortcut}"
 Name: "startup"; Description: "{cm:StartWithWindows}"
+Name: "updates"; Description: "{cm:CheckForUpdates}"
 Name: "openapp"; Description: "{cm:OpenAfterInstall}"
 
 [Files]
@@ -307,6 +314,7 @@ function MeasureText(DC: THandle; Text: String; Count: Integer; var Size: TButto
 var
   SelectedOptionsLabel: TNewStaticText;
   ReadyHeaderExtension: Integer;
+  UpdateTaskInitialized: Boolean;
   DialogHook: THandle;
   UninstallConfirmText, UninstallSuccessText, UninstallRestartText, UninstallPartialText: String;
   AppRunningText, InstallWindowTitle: String;
@@ -606,11 +614,64 @@ begin
     WizardForm.ReadyPage.ClientHeight - ScaleY(6));
 end;
 
+function UpdatePreferencePath: String;
+var
+  DataDirectory: String;
+begin
+  DataDirectory := GetEnv('POSITIONI_DATA_DIR');
+  if DataDirectory = '' then
+    DataDirectory := ExpandConstant('{localappdata}\Positioni');
+  Result := AddBackslash(DataDirectory) + 'updates-auto.txt';
+end;
+
+procedure InitializeUpdateTask;
+var
+  SavedPreference: AnsiString;
+begin
+  if UpdateTaskInitialized then
+    Exit;
+  UpdateTaskInitialized := True;
+
+  if (ExpandConstant('{param:TASKS|}') <> '') or
+     (ExpandConstant('{param:MERGETASKS|}') <> '') or
+     (ExpandConstant('{param:LOADINF|}') <> '') then
+    Exit;
+
+  if LoadStringFromFile(UpdatePreferencePath, SavedPreference) then
+  begin
+    if SavedPreference = '1' then
+      WizardSelectTasks('updates')
+    else
+      WizardSelectTasks('!updates');
+  end
+  else
+    WizardSelectTasks('updates');
+end;
+
+procedure SaveUpdateTask;
+var
+  FileName: String;
+  Preference: AnsiString;
+begin
+  if WizardIsTaskSelected('updates') then
+    Preference := '1'
+  else
+    Preference := '0';
+  FileName := UpdatePreferencePath;
+  if not ForceDirectories(ExtractFileDir(FileName)) then
+    Log('Could not create the Positioni settings folder.')
+  else if not SaveStringToFile(FileName, Preference, False) then
+    Log('Could not save the Positioni update preference.');
+end;
+
 procedure CurPageChanged(CurPageID: Integer);
 var
   HeaderDelta, HeaderExtension: Integer;
   DesktopLabel: String;
 begin
+  if CurPageID = wpSelectTasks then
+    InitializeUpdateTask;
+
   HeaderExtension := 0;
   if CurPageID = wpReady then
     HeaderExtension := ScaleY(10);
@@ -648,6 +709,8 @@ begin
       SelectedOptionsLabel.Caption := SelectedOptionsLabel.Caption + #13#10 + '- ' + CustomMessage('StartMenuShortcut');
     if WizardIsTaskSelected('startup') then
       SelectedOptionsLabel.Caption := SelectedOptionsLabel.Caption + #13#10 + '- ' + CustomMessage('StartWithWindows');
+    if WizardIsTaskSelected('updates') then
+      SelectedOptionsLabel.Caption := SelectedOptionsLabel.Caption + #13#10 + '- ' + CustomMessage('CheckForUpdates');
     if WizardIsTaskSelected('openapp') then
       SelectedOptionsLabel.Caption := SelectedOptionsLabel.Caption + #13#10 + '- ' + CustomMessage('OpenAfterInstall');
     SelectedOptionsLabel.Visible := WizardSelectedTasks(False) <> '';
@@ -721,6 +784,7 @@ begin
     Exit;
   if not WizardSilent then
   begin
+    SaveUpdateTask;
     if WizardIsTaskSelected('startup') then
       RegWriteStringValue(HKCU, RunKey, RunValue, InstalledCommand)
     else if RegQueryStringValue(HKCU, RunKey, RunValue, ExistingCommand) then
