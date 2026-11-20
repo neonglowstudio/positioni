@@ -6,13 +6,14 @@
 #endif
 
 #define AppName "Positioni"
+#define AppId "NeonGlow.Positioni"
 #define InstallerBaseName "positioni-" + AppVersion + "-win-x64-installer"
 #define Publisher "Neon Glow"
 #define Website "https://neonglow.studio/"
 #define Repository "https://github.com/neonglowstudio/positioni"
 
 [Setup]
-AppId=NeonGlow.Positioni
+AppId={#AppId}
 AppName={#AppName}
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}
@@ -235,6 +236,55 @@ de.StartMenuShortcut=Eine Verknüpfung im Startmenü erstellen
 de.StartWithWindows=Positioni bei der Windows-Anmeldung im Infobereich starten
 de.CheckForUpdates=Automatisch nach Updates suchen
 
+en.UpgradeTitle=Update Positioni
+en.UpgradeVersions=Installed version %1 → New version %2
+en.UpgradeKeepSettings=Your profiles and settings will be kept.
+en.UpgradeButton=&Update
+en.UpgradeInstalling=Updating Positioni
+en.UpgradeFinished=Update complete
+en.UpgradeSuccess=Positioni %1 was updated successfully.
+en.UpgradeCancel=Cancel the update? Your current version will remain installed.
+es.UpgradeTitle=Actualizar Positioni
+es.UpgradeVersions=Versión instalada %1 → Nueva versión %2
+es.UpgradeKeepSettings=Se conservarán tus perfiles y tu configuración.
+es.UpgradeButton=&Actualizar
+es.UpgradeInstalling=Actualizando Positioni
+es.UpgradeFinished=Actualización completada
+es.UpgradeSuccess=Positioni se actualizó a la versión %1.
+es.UpgradeCancel=¿Cancelar la actualización? Tu versión actual seguirá instalada.
+pt.UpgradeTitle=Atualizar o Positioni
+pt.UpgradeVersions=Versão instalada %1 → Nova versão %2
+pt.UpgradeKeepSettings=Seus perfis e suas configurações serão mantidos.
+pt.UpgradeButton=&Atualizar
+pt.UpgradeInstalling=Atualizando o Positioni
+pt.UpgradeFinished=Atualização concluída
+pt.UpgradeSuccess=O Positioni foi atualizado para a versão %1.
+pt.UpgradeCancel=Cancelar a atualização? Sua versão atual continuará instalada.
+it.UpgradeTitle=Aggiorna Positioni
+it.UpgradeVersions=Versione installata %1 → Nuova versione %2
+it.UpgradeKeepSettings=I tuoi profili e le tue impostazioni verranno mantenuti.
+it.UpgradeButton=&Aggiorna
+it.UpgradeInstalling=Aggiornamento di Positioni
+it.UpgradeFinished=Aggiornamento completato
+it.UpgradeSuccess=Positioni è stato aggiornato alla versione %1.
+it.UpgradeCancel=Annullare l’aggiornamento? La versione attuale rimarrà installata.
+fr.UpgradeTitle=Mettre à jour Positioni
+fr.UpgradeVersions=Version installée %1 → Nouvelle version %2
+fr.UpgradeKeepSettings=Vos profils et vos paramètres seront conservés.
+fr.UpgradeButton=&Mettre à jour
+fr.UpgradeInstalling=Mise à jour de Positioni
+fr.UpgradeFinished=Mise à jour terminée
+fr.UpgradeSuccess=Positioni a été mis à jour vers la version %1.
+fr.UpgradeCancel=Annuler la mise à jour ? Votre version actuelle restera installée.
+de.UpgradeTitle=Positioni aktualisieren
+de.UpgradeVersions=Installierte Version %1 → Neue Version %2
+de.UpgradeKeepSettings=Deine Profile und Einstellungen bleiben erhalten.
+de.UpgradeButton=&Aktualisieren
+de.UpgradeInstalling=Positioni wird aktualisiert
+de.UpgradeFinished=Aktualisierung abgeschlossen
+de.UpgradeSuccess=Positioni wurde auf Version %1 aktualisiert.
+de.UpgradeCancel=Aktualisierung abbrechen? Deine aktuelle Version bleibt installiert.
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
 Name: "startmenu"; Description: "{cm:StartMenuShortcut}"
@@ -246,11 +296,12 @@ Name: "openapp"; Description: "{cm:OpenAfterInstall}"
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Excludes: "*.pdb,startup-error.txt"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{userprograms}\Positioni"; Filename: "{app}\Positioni.exe"; WorkingDir: "{app}"; Tasks: startmenu
-Name: "{userdesktop}\Positioni"; Filename: "{app}\Positioni.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{userprograms}\Positioni"; Filename: "{app}\Positioni.exe"; WorkingDir: "{app}"; Tasks: startmenu; Check: ShouldConfigureInstallation
+Name: "{userdesktop}\Positioni"; Filename: "{app}\Positioni.exe"; WorkingDir: "{app}"; Tasks: desktopicon; Check: ShouldConfigureInstallation
 
 [Code]
 const
+  UninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#AppId}_is1';
   RunKey = 'Software\Microsoft\Windows\CurrentVersion\Run';
   RunValue = 'Positioni';
   WhCbt = 5;
@@ -315,6 +366,8 @@ var
   SelectedOptionsLabel: TNewStaticText;
   ReadyHeaderExtension: Integer;
   UpdateTaskInitialized: Boolean;
+  Upgrading: Boolean;
+  PreviousVersion: String;
   DialogHook: THandle;
   UninstallConfirmText, UninstallSuccessText, UninstallRestartText, UninstallPartialText: String;
   AppRunningText, InstallWindowTitle: String;
@@ -562,6 +615,34 @@ begin
   Result := '"' + ExpandConstant('{app}\Positioni.exe') + '" --startup';
 end;
 
+function DetectUpgrade: Boolean;
+var
+  InstallLocation: String;
+  InstalledVersion, NewVersion: Int64;
+begin
+  Result := False;
+  if not RegQueryStringValue(HKCU, UninstallKey, 'InstallLocation', InstallLocation) then
+    Exit;
+  if (InstallLocation = '') or not SameText(AddBackslash(InstallLocation), AddBackslash(WizardDirValue)) then
+    Exit;
+  if not GetPackedVersion(AddBackslash(InstallLocation) + 'Positioni.exe', InstalledVersion) then
+    Exit;
+  if not StrToVersion('{#AppVersion}.0', NewVersion) then
+    Exit;
+  if ComparePackedVersion(InstalledVersion, NewVersion) >= 0 then
+    Exit;
+
+  if not RegQueryStringValue(HKCU, UninstallKey, 'DisplayVersion', PreviousVersion) or (PreviousVersion = '') then
+    PreviousVersion := VersionToStr(InstalledVersion);
+  Result := True;
+  Log('Upgrading Positioni from ' + PreviousVersion + ' to {#AppVersion}.');
+end;
+
+function ShouldConfigureInstallation: Boolean;
+begin
+  Result := not Upgrading;
+end;
+
 function WizardRelativeLeft(Control: TControl): Integer;
 begin
   Result := 0;
@@ -576,6 +657,9 @@ procedure InitializeWizard;
 var
   ContentOffset, LeftMargin: Integer;
 begin
+  Upgrading := DetectUpgrade;
+  if Upgrading then
+    WizardForm.Caption := CustomMessage('UpgradeTitle');
   LeftMargin := ScaleX(16);
   ContentOffset := WizardRelativeLeft(WizardForm.InnerNotebook) - LeftMargin;
   WizardForm.InnerNotebook.Left := WizardForm.InnerNotebook.Left - ContentOffset;
@@ -612,6 +696,11 @@ begin
   SelectedOptionsLabel.Anchors := [akLeft, akTop, akRight, akBottom];
   SelectedOptionsLabel.SetBounds(0, ScaleY(6), WizardForm.ReadyPage.ClientWidth,
     WizardForm.ReadyPage.ClientHeight - ScaleY(6));
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := Upgrading and (PageID in [wpWelcome, wpSelectTasks]);
 end;
 
 function UpdatePreferencePath: String;
@@ -673,7 +762,7 @@ begin
     InitializeUpdateTask;
 
   HeaderExtension := 0;
-  if CurPageID = wpReady then
+  if (CurPageID = wpReady) and not Upgrading then
     HeaderExtension := ScaleY(10);
   HeaderDelta := HeaderExtension - ReadyHeaderExtension;
   if HeaderDelta <> 0 then
@@ -688,15 +777,42 @@ begin
     WizardForm.MainPanel.ClientHeight - WizardForm.PageDescriptionLabel.Top;
 
   if CurPageID = wpFinished then
+  begin
     WizardForm.NextButton.Left := WizardForm.CancelButton.Left +
       WizardForm.CancelButton.Width - WizardForm.NextButton.Width;
+    if Upgrading then
+    begin
+      WizardForm.FinishedHeadingLabel.Caption := CustomMessage('UpgradeFinished');
+      WizardForm.FinishedHeadingLabel.AdjustHeight;
+      WizardForm.FinishedLabel.Top := WizardForm.FinishedHeadingLabel.Top +
+        WizardForm.FinishedHeadingLabel.Height + ScaleY(4);
+      WizardForm.FinishedLabel.Caption := FmtMessage(CustomMessage('UpgradeSuccess'), ['{#AppVersion}']);
+    end;
+  end;
+
+  if Upgrading and (CurPageID = wpInstalling) then
+  begin
+    WizardForm.PageNameLabel.Caption := CustomMessage('UpgradeInstalling');
+    WizardForm.PageDescriptionLabel.Caption := '';
+  end;
 
   if CurPageID = wpReady then
   begin
-    WizardForm.PageDescriptionLabel.Caption :=
-      WizardForm.PageDescriptionLabel.Caption + #13#10 + SetupMessage(msgReadyLabel2b);
     WizardForm.ReadyLabel.Visible := False;
     WizardForm.ReadyMemo.Visible := False;
+    if Upgrading then
+    begin
+      WizardForm.PageNameLabel.Caption := CustomMessage('UpgradeTitle');
+      WizardForm.PageDescriptionLabel.Caption :=
+        FmtMessage(CustomMessage('UpgradeVersions'), [PreviousVersion, '{#AppVersion}']);
+      WizardForm.NextButton.Caption := CustomMessage('UpgradeButton');
+      SelectedOptionsLabel.Caption := CustomMessage('UpgradeKeepSettings');
+      SelectedOptionsLabel.Visible := True;
+      Exit;
+    end;
+
+    WizardForm.PageDescriptionLabel.Caption :=
+      WizardForm.PageDescriptionLabel.Caption + #13#10 + SetupMessage(msgReadyLabel2b);
 
     SelectedOptionsLabel.Caption := SetupMessage(msgReadyMemoTasks);
     if WizardIsTaskSelected('desktopicon') then
@@ -729,16 +845,20 @@ begin
 
   Dialog := CreateCustomForm(ScaleX(300), ScaleY(127), True, True);
   try
-    Dialog.Caption := SetupMessage(msgExitSetupTitle);
+    if Upgrading then
+      Dialog.Caption := CustomMessage('UpgradeTitle')
+    else
+      Dialog.Caption := SetupMessage(msgExitSetupTitle);
     MessageLabel := TNewStaticText.Create(Dialog);
     MessageLabel.Parent := Dialog;
     MessageLabel.AutoSize := False;
     MessageLabel.WordWrap := True;
-    MessageLabel.Caption := CustomMessage('ConfirmExit') + #13#10#13#10;
     if CurPageID = wpInstalling then
-      MessageLabel.Caption := MessageLabel.Caption + CustomMessage('InstallInProgress')
+      MessageLabel.Caption := CustomMessage('ConfirmExit') + #13#10#13#10 + CustomMessage('InstallInProgress')
+    else if Upgrading then
+      MessageLabel.Caption := CustomMessage('UpgradeCancel')
     else
-      MessageLabel.Caption := MessageLabel.Caption + CustomMessage('ExitExplanation');
+      MessageLabel.Caption := CustomMessage('ConfirmExit') + #13#10#13#10 + CustomMessage('ExitExplanation');
     MessageLabel.SetBounds(ScaleX(16), ScaleY(14), Dialog.ClientWidth - ScaleX(32), ScaleY(72));
 
     ExitButton := TNewButton.Create(Dialog);
@@ -773,7 +893,7 @@ var
 begin
   if CurStep = ssDone then
   begin
-    if not WizardSilent and WizardIsTaskSelected('openapp') then
+    if not WizardSilent and not Upgrading and WizardIsTaskSelected('openapp') then
       if not Exec(ExpandConstant('{app}\Positioni.exe'), '', ExpandConstant('{app}'),
         SW_SHOWNORMAL, ewNoWait, ResultCode) then
         Log('Could not open Positioni: ' + SysErrorMessage(ResultCode));
@@ -782,7 +902,7 @@ begin
 
   if CurStep <> ssPostInstall then
     Exit;
-  if not WizardSilent then
+  if not WizardSilent and not Upgrading then
   begin
     SaveUpdateTask;
     if WizardIsTaskSelected('startup') then

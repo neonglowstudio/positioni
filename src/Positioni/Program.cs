@@ -23,6 +23,21 @@ internal static class Program
         }
         catch(Exception ex) { Report(ex); }
     }
+
+    internal static void ReportTrayRegistrationFailure()
+    {
+        try
+        {
+            string directory = LanguagePreference.DataDirectory;
+            Directory.CreateDirectory(directory);
+            string version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown";
+            File.WriteAllText(Path.Combine(directory, "tray-error.txt"),
+                $"{DateTimeOffset.Now:O} Positioni {version}, Windows {Environment.OSVersion.Version}: Windows did not register the tray icon after repeated attempts.");
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+
     internal static void Report(Exception ex)
     {
         try { File.WriteAllText(Path.Combine(AppContext.BaseDirectory,"startup-error.txt"),ex.ToString()); } catch { }

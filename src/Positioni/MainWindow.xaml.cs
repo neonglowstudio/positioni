@@ -69,9 +69,10 @@ public sealed partial class MainWindow : Window
         {
             loadError = Get("LoadError", e is System.Text.Json.JsonException ? Get("InvalidFormat") : e.Message);
         }
-        host = new DesktopHost(hwnd);
+        host = new DesktopHost(hwnd, DispatcherQueue);
         host.Pressed = p => { if(!busy) ApplyToActive(p); };
         host.Open = ShowEditor;
+        host.TrayRegistrationFailed = OnTrayRegistrationFailed;
         Root.AddHandler(UIElement.PreviewKeyDownEvent, new KeyEventHandler(RecordShortcutKey), true);
         host.Toggle = TogglePause;
         host.ResetSize = () => DispatcherQueue.TryEnqueue(ResetWindowSize);
@@ -97,10 +98,17 @@ public sealed partial class MainWindow : Window
         var errors=RefreshHotkeys();
         if (loadError != null) Notify(loadError, true);
         else if (errors.Count > 0) Notify(string.Join("\n", errors), true);
-        if(!host.TrayAvailable) Notify(Get("TrayError"),true);
         if (loadError is null && !File.Exists(dataPath)) OpenStarterProfiles(StarterPickerEntry.Welcome);
     }
 
+    internal void StartTrayRegistration() => host.StartTrayRegistration();
+
+    private void OnTrayRegistrationFailed()
+    {
+        Program.ReportTrayRegistrationFailure();
+        if (!Native.IsWindowVisible(hwnd)) ShowEditor();
+        Notify(Get("TrayError"), true);
+    }
 
     private void Options_Click(object sender, RoutedEventArgs e)
     {

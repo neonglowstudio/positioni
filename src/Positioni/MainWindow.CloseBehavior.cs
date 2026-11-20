@@ -51,7 +51,7 @@ public sealed partial class MainWindow
 
             closeGeneration++;
             activeDialog?.Hide();
-            if (!forceExit && host.CloseToTray && host.TrayAvailable)
+            if (!forceExit && host.CloseToTray && host.TryRegisterTray())
                 Native.ShowWindow(hwnd, 0);
             else
                 host.Quit?.Invoke();

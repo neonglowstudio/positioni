@@ -50,6 +50,7 @@ public partial class App : Application
                 openRequest.Dispose();
             };
             if (!startInTray) window.ShowEditor();
+            window.StartTrayRegistration();
         }
         catch (Exception ex)
         {

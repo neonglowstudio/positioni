@@ -1,5 +1,6 @@
 using static Positioni.Core.UiText;
 using System.Runtime.InteropServices;
+using Microsoft.UI.Dispatching;
 using Positioni.Core;
 
 namespace Positioni;
@@ -35,6 +36,7 @@ internal static class Native
 
     [DllImport("user32.dll")] internal static extern bool GetWindowRect(nint hwnd, out RECT rect);
     [DllImport("user32.dll")] internal static extern bool IsWindow(nint hwnd);
+    [DllImport("user32.dll")] internal static extern bool IsWindowVisible(nint hwnd);
     [DllImport("user32.dll")] internal static extern bool IsZoomed(nint hwnd);
     [DllImport("user32.dll")] internal static extern bool ShowWindow(nint hwnd, int cmd);
     [DllImport("user32.dll")] internal static extern bool SetForegroundWindow(nint hwnd);
@@ -110,8 +112,13 @@ internal static class Native
 
 internal sealed class DesktopHost : IDisposable
 {
+    private const uint AddTrayIcon = 0, ModifyTrayIcon = 1, DeleteTrayIcon = 2;
+    private const int TrayRetryLimit = 15;
     private readonly nint hwnd;
     private readonly Native.SubclassProc callback;
+    private readonly DispatcherQueue dispatcher;
+    private readonly DispatcherQueueTimer trayRetryTimer;
+    private int trayRetriesRemaining;
     private readonly Dictionary<int,Preset> keys = [];
     private Native.NOTIFYICONDATA icon;
     private readonly nint trayIcon;
@@ -120,6 +127,7 @@ internal sealed class DesktopHost : IDisposable
     public Action? Open, Toggle, Quit, ResetSize, RequestExit, RequestQuit;
     public Action? MonitorLayoutChanged;
     public Action? Resized;
+    public Action? TrayRegistrationFailed;
     public bool CloseToTray { get; set; } = true;
     private const uint BorderClick = 0x00A1;
     private const uint BorderDoubleClick = 0x00A3;
@@ -170,15 +178,44 @@ internal sealed class DesktopHost : IDisposable
         }
         return Native.CallNextHookEx(0, code, message, data);
     }
-    public bool TrayAvailable { get; private set; }
-    public DesktopHost(nint window)
+    private bool trayAvailable;
+    public DesktopHost(nint window, DispatcherQueue dispatcher)
     {
+        this.dispatcher = dispatcher;
+        trayRetryTimer = dispatcher.CreateTimer();
+        trayRetryTimer.Interval = TimeSpan.FromSeconds(1);
+        trayRetryTimer.Tick += (_, _) =>
+        {
+            if (Quitting || !trayRetryTimer.IsRunning) return;
+            if (TryRegisterTray() || --trayRetriesRemaining > 0) return;
+
+            trayRetryTimer.Stop();
+            TrayRegistrationFailed?.Invoke();
+        };
         hwnd=window; callback=WindowProc;
         if (!Native.SetWindowSubclass(hwnd,callback,1,0)) throw new InvalidOperationException(Get("NativeInit"));
         trayIcon = Native.LoadTrayIcon(hwnd);
         icon = new() { Size=(uint)Marshal.SizeOf<Native.NOTIFYICONDATA>(), Hwnd=hwnd, Id=1, Flags=7, Callback=0x8001,
             Icon=trayIcon != 0 ? trayIcon : Native.LoadIcon(0,(nint)32512), Tip="Positioni · " + Get("ShortcutsActive"), Info="", InfoTitle="" };
-        TrayAvailable=Native.Shell_NotifyIcon(0,ref icon);
+    }
+
+    public void StartTrayRegistration()
+    {
+        if (Quitting || TryRegisterTray() || trayRetryTimer.IsRunning) return;
+
+        trayRetriesRemaining = TrayRetryLimit;
+        trayRetryTimer.Start();
+    }
+
+    public bool TryRegisterTray()
+    {
+        if (Quitting) return false;
+
+        // Verify the icon still exists before hiding the window.
+        trayAvailable = Native.Shell_NotifyIcon(ModifyTrayIcon, ref icon) ||
+            Native.Shell_NotifyIcon(AddTrayIcon, ref icon);
+        if (trayAvailable) trayRetryTimer.Stop();
+        return trayAvailable;
     }
     public int CheckShortcut(uint modifiers, uint key)
     {
@@ -209,7 +246,7 @@ internal sealed class DesktopHost : IDisposable
     public void UpdateTrayText()
     {
         icon.Tip = "Positioni · " + Get(Paused ? "ShortcutsPaused" : "ShortcutsActive");
-        Native.Shell_NotifyIcon(1, ref icon);
+        if (trayAvailable) StartTrayRegistration();
     }
     private nint HandleCornerClick(nint window, nint coordinates)
     {
@@ -278,7 +315,8 @@ internal sealed class DesktopHost : IDisposable
             return HandleCornerClick(h, lp);
         if (msg == BorderClick || msg == 0x0201) previousCornerClick = null;
         if (msg==0x312 && !Recording && keys.TryGetValue((int)wp,out var p)) { Pressed?.Invoke(p); return 0; }
-        if (msg==taskbarMessage) TrayAvailable=Native.Shell_NotifyIcon(0,ref icon);
+        if (taskbarMessage != 0 && msg == taskbarMessage)
+            dispatcher.TryEnqueue(StartTrayRegistration);
         if (msg == 0x10 && !Quitting && RequestExit is { } requestClose)
         {
             requestClose();
@@ -303,9 +341,11 @@ internal sealed class DesktopHost : IDisposable
     }
     public void Dispose()
     {
+        Quitting = true;
+        trayRetryTimer.Stop();
         EndRecording();
         foreach(var id in keys.Keys) Native.UnregisterHotKey(hwnd,id);
-        Native.Shell_NotifyIcon(2,ref icon); Native.RemoveWindowSubclass(hwnd,callback,1);
+        Native.Shell_NotifyIcon(DeleteTrayIcon, ref icon); Native.RemoveWindowSubclass(hwnd,callback,1);
         if (trayIcon != 0) Native.DestroyIcon(trayIcon);
     }
 }
